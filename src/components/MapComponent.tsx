@@ -7,14 +7,32 @@ import { MapboxOverlay } from '@deck.gl/mapbox';
 
 const AIRPORTS_URL = 'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson';
 
+interface AirportFeature {
+  properties: {
+    name?: string;
+    sov_a3?: string;
+    type?: string;
+  };
+}
+
+interface AirportData {
+  features: AirportFeature[];
+}
+
+interface HoveredAirport {
+  object: AirportFeature;
+  x: number;
+  y: number;
+}
+
 interface MapComponentProps {
-  onDataLoad?: (data: any) => void;
+  onDataLoad?: (data: AirportData) => void;
 }
 
 export default function MapComponent({ onDataLoad }: MapComponentProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const [hoveredAirport, setHoveredAirport] = useState<any>(null);
+  const [hoveredAirport, setHoveredAirport] = useState<HoveredAirport | null>(null);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -72,7 +90,7 @@ export default function MapComponent({ onDataLoad }: MapComponentProps) {
       ]
     });
 
-    map.current.addControl(overlay as any);
+    map.current.addControl(overlay as maplibregl.IControl);
 
     return () => {
       map.current?.remove();

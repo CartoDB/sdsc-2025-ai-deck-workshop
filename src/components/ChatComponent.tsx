@@ -3,8 +3,20 @@
 import React, { useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
 
+interface AirportFeature {
+  properties: {
+    name?: string;
+    sov_a3?: string;
+    type?: string;
+  };
+}
+
+interface AirportData {
+  features: AirportFeature[];
+}
+
 interface ChatComponentProps {
-  airportData?: any;
+  airportData?: AirportData;
 }
 
 export default function ChatComponent({ airportData }: ChatComponentProps) {
@@ -14,8 +26,8 @@ export default function ChatComponent({ airportData }: ChatComponentProps) {
     if (!airportData?.features) return '';
     
     const totalAirports = airportData.features.length;
-    const countries = new Set(airportData.features.map((f: any) => f.properties.sov_a3).filter(Boolean));
-    const types = new Set(airportData.features.map((f: any) => f.properties.type).filter(Boolean));
+    const countries = new Set(airportData.features.map((f) => f.properties.sov_a3).filter(Boolean));
+    const types = new Set(airportData.features.map((f) => f.properties.type).filter(Boolean));
     
     return `Currently viewing ${totalAirports} airports across ${countries.size} countries. Airport types include: ${Array.from(types).join(', ')}.`;
   }, [airportData]);

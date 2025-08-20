@@ -6,10 +6,20 @@ import ChatComponent from '@/components/ChatComponent';
 
 export const dynamic = 'force-dynamic';
 
-export default function Home() {
-  const [airportData, setAirportData] = useState(null);
+interface AirportData {
+  features: Array<{
+    properties: {
+      name?: string;
+      sov_a3?: string;
+      type?: string;
+    };
+  }>;
+}
 
-  const handleDataLoad = useCallback((data: any) => {
+export default function Home() {
+  const [airportData, setAirportData] = useState<AirportData | null>(null);
+
+  const handleDataLoad = useCallback((data: AirportData) => {
     setAirportData(data);
   }, []);
 

@@ -22,4 +22,4 @@ I want you create a simple app using the Vercel AI SDK: https://ai-sdk.dev/docs/
 
 ## Acceptance
 
-Verify the code is working using `yarn build`
+Verify the code is working using `yarn build`. After any change run `yarn lint` to check for errors.

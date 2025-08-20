@@ -1,5 +1,7 @@
 import { anthropic } from '@ai-sdk/anthropic';
-import { streamText } from 'ai';
+import { convertToCoreMessages, streamText } from 'ai';
+
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
   const { messages } = await req.json();
@@ -16,7 +18,7 @@ export async function POST(req: Request) {
     - General questions about the data being visualized
     
     Be helpful, concise, and focus on the spatial and aviation aspects of the data.`,
-    messages,
+    messages: convertToCoreMessages(messages),
   });
 
   return result.toDataStreamResponse();
