@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
+import { DefaultChatTransport } from 'ai';
 
 interface AirportFeature {
   properties: {
@@ -20,7 +21,12 @@ interface ChatComponentProps {
 }
 
 export default function ChatComponent({ airportData }: ChatComponentProps) {
-  const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat();
+  const { messages, sendMessage, status } = useChat({
+    transport: new DefaultChatTransport({
+      api: '/api/chat',
+    }),
+  });
+  const [input, setInput] = useState('');
 
   const airportStats = useMemo(() => {
     if (!airportData?.features) return '';
@@ -65,29 +71,43 @@ export default function ChatComponent({ airportData }: ChatComponentProps) {
                 : 'bg-gray-100 text-gray-800'
             }`}
           >
-            <div className="text-sm whitespace-pre-wrap">{message.content}</div>
+            <div className="text-sm whitespace-pre-wrap">
+              {message.role === 'user' ? 'User: ' : 'AI: '}
+              {message.parts.map((part, index) =>
+                part.type === 'text' ? <span key={index}>{part.text}</span> : null
+              )}
+            </div>
           </div>
         ))}
         
-        {isLoading && (
+        {status === 'in_progress' && (
           <div className="bg-gray-100 text-gray-800 p-3 rounded-lg max-w-[85%]">
             <div className="text-sm">Thinking...</div>
           </div>
         )}
       </div>
       
-      <form onSubmit={handleSubmit} className="p-4 border-t border-gray-200">
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (input.trim()) {
+            sendMessage({ text: input });
+            setInput('');
+          }
+        }}
+        className="p-4 border-t border-gray-200"
+      >
         <div className="flex space-x-2">
           <input
             value={input}
-            onChange={handleInputChange}
+            onChange={(e) => setInput(e.target.value)}
             placeholder="Ask about the airport data..."
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-            disabled={isLoading}
+            disabled={status !== 'ready'}
           />
           <button
             type="submit"
-            disabled={isLoading || !input?.trim()}
+            disabled={status !== 'ready' || !input?.trim()}
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed text-sm"
           >
             Send
