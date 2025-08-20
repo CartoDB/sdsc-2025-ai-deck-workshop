@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(yarn create:*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(mkdir:*)",
+      "Bash(yarn init:*)",
+      "Bash(yarn add:*)",
+      "Bash(yarn dev)",
+      "Bash(rm:*)",
+      "Bash(yarn run:*)",
+      "Bash(npx next:*)",
+      "Bash(yarn build)",
+      "Bash(cat:*)",
+      "Bash(grep:*)",
+      "Bash(sed:*)",
+      "Bash(yarn install)",
+      "WebFetch(domain:ai-sdk.dev)",
+      "Bash(kill:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

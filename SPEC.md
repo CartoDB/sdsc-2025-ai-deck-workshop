@@ -19,3 +19,7 @@ I want you create a simple app using the Vercel AI SDK: https://ai-sdk.dev/docs/
 - In addition to the map, there should be a chat box to interact with the AI
 - The chat should understand the context of the map, in this simple example it should be possible to ask it questions about the dataset displayed: https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson
 - Do not add the CARTO MCP API for now
+
+## Acceptance
+
+Verify the code is working using `yarn build`
