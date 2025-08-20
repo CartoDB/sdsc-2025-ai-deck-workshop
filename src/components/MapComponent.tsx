@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
-import { Deck } from '@deck.gl/core';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 
@@ -15,8 +14,7 @@ interface MapComponentProps {
 export default function MapComponent({ onDataLoad }: MapComponentProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const deckOverlay = useRef<MapboxOverlay | null>(null);
-  const [airportData, setAirportData] = useState(null);
+  const [hoveredAirport, setHoveredAirport] = useState<any>(null);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -49,57 +47,32 @@ export default function MapComponent({ onDataLoad }: MapComponentProps) {
       zoom: 2
     });
 
-    // Load airport data
-    fetch(AIRPORTS_URL)
-      .then(response => response.json())
-      .then(data => {
-        setAirportData(data);
-        onDataLoad?.(data);
-        
-        // Create deck.gl overlay
-        const overlay = new MapboxOverlay({
-          layers: [
-            new GeoJsonLayer({
-              id: 'airports',
-              data,
-              pickable: true,
-              stroked: false,
-              filled: true,
-              pointType: 'circle',
-              pointRadiusScale: 20,
-              pointRadiusMinPixels: 2,
-              getFillColor: [255, 140, 0, 180],
-              getPointRadius: 40,
-              onHover: (info) => {
-                if (info.object) {
-                  const tooltip = document.getElementById('tooltip');
-                  if (tooltip) {
-                    tooltip.style.display = 'block';
-                    tooltip.style.left = info.x + 'px';
-                    tooltip.style.top = info.y + 'px';
-                    tooltip.innerHTML = `
-                      <strong>${info.object.properties.name || 'Unknown Airport'}</strong><br/>
-                      Type: ${info.object.properties.type || 'N/A'}<br/>
-                      Country: ${info.object.properties.sov_a3 || 'N/A'}
-                    `;
-                  }
-                } else {
-                  const tooltip = document.getElementById('tooltip');
-                  if (tooltip) {
-                    tooltip.style.display = 'none';
-                  }
-                }
-              }
-            })
-          ]
-        });
+    const overlay = new MapboxOverlay({
+      layers: [
+        new GeoJsonLayer({
+          id: 'airports',
+          data: AIRPORTS_URL,
+          pickable: true,
+          stroked: false,
+          filled: true,
+          pointType: 'circle',
+          pointRadiusScale: 20,
+          pointRadiusMinPixels: 2,
+          getFillColor: [255, 140, 0, 180],
+          getPointRadius: 40,
+          onHover: (info) => {
+            setHoveredAirport(info.object ? {
+              object: info.object,
+              x: info.x,
+              y: info.y
+            } : null);
+          },
+          onDataLoad: onDataLoad
+        })
+      ]
+    });
 
-        deckOverlay.current = overlay;
-        map.current?.addControl(overlay as any);
-      })
-      .catch(error => {
-        console.error('Error loading airport data:', error);
-      });
+    map.current.addControl(overlay as any);
 
     return () => {
       map.current?.remove();
@@ -110,11 +83,21 @@ export default function MapComponent({ onDataLoad }: MapComponentProps) {
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="w-full h-full" />
-      <div 
-        id="tooltip" 
-        className="absolute bg-black/80 text-white p-2 rounded text-sm pointer-events-none z-10 hidden"
-        style={{ transform: 'translate(-50%, -100%)', marginTop: '-10px' }}
-      />
+      {hoveredAirport && (
+        <div 
+          className="absolute bg-black/80 text-white p-2 rounded text-sm pointer-events-none z-10"
+          style={{ 
+            left: hoveredAirport.x + 'px', 
+            top: hoveredAirport.y + 'px',
+            transform: 'translate(-50%, -100%)', 
+            marginTop: '-10px' 
+          }}
+        >
+          <strong>{hoveredAirport.object.properties.name || 'Unknown Airport'}</strong><br/>
+          Type: {hoveredAirport.object.properties.type || 'N/A'}<br/>
+          Country: {hoveredAirport.object.properties.sov_a3 || 'N/A'}
+        </div>
+      )}
     </div>
   );
 }

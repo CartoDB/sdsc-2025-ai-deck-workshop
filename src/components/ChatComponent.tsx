@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useChat } from '@ai-sdk/react';
 
 interface ChatComponentProps {
@@ -10,7 +10,7 @@ interface ChatComponentProps {
 export default function ChatComponent({ airportData }: ChatComponentProps) {
   const { messages, input, handleInputChange, handleSubmit, isLoading } = useChat();
 
-  const formatAirportStats = () => {
+  const airportStats = useMemo(() => {
     if (!airportData?.features) return '';
     
     const totalAirports = airportData.features.length;
@@ -18,7 +18,7 @@ export default function ChatComponent({ airportData }: ChatComponentProps) {
     const types = new Set(airportData.features.map((f: any) => f.properties.type).filter(Boolean));
     
     return `Currently viewing ${totalAirports} airports across ${countries.size} countries. Airport types include: ${Array.from(types).join(', ')}.`;
-  };
+  }, [airportData]);
 
   return (
     <div className="flex flex-col h-full bg-white border-l border-gray-300">
@@ -26,7 +26,7 @@ export default function ChatComponent({ airportData }: ChatComponentProps) {
         <h2 className="text-lg font-semibold text-gray-800">Airport Data Assistant</h2>
         {airportData && (
           <p className="text-sm text-gray-600 mt-1">
-            {formatAirportStats()}
+            {airportStats}
           </p>
         )}
       </div>
