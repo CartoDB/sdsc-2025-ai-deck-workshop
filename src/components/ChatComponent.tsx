@@ -3,24 +3,14 @@
 import React, { useMemo, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
 import { DefaultChatTransport } from 'ai';
-
-interface AirportFeature {
-  properties: {
-    name?: string;
-    sov_a3?: string;
-    type?: string;
-  };
-}
-
-interface AirportData {
-  features: AirportFeature[];
-}
+import { AppConfig, GeoJsonData } from '@/types/config';
 
 interface ChatComponentProps {
-  airportData?: AirportData;
+  config: AppConfig;
+  data?: GeoJsonData;
 }
 
-export default function ChatComponent({ airportData }: ChatComponentProps) {
+export default function ChatComponent({ config, data }: ChatComponentProps) {
   const { messages, sendMessage, status } = useChat({
     transport: new DefaultChatTransport({
       api: '/api/chat',
@@ -28,23 +18,28 @@ export default function ChatComponent({ airportData }: ChatComponentProps) {
   });
   const [input, setInput] = useState('');
 
-  const airportStats = useMemo(() => {
-    if (!airportData?.features) return '';
+  const dataStats = useMemo(() => {
+    if (!data?.features) return '';
     
-    const totalAirports = airportData.features.length;
-    const countries = new Set(airportData.features.map((f) => f.properties.sov_a3).filter(Boolean));
-    const types = new Set(airportData.features.map((f) => f.properties.type).filter(Boolean));
+    const totalFeatures = data.features.length;
+    const stats: string[] = [`Currently viewing ${totalFeatures} features`];
     
-    return `Currently viewing ${totalAirports} airports across ${countries.size} countries. Airport types include: ${Array.from(types).join(', ')}.`;
-  }, [airportData]);
+    config.displaySettings.stats.groupByFields.forEach(field => {
+      const uniqueValues = new Set(data.features.map((f) => f.properties[field]).filter(Boolean));
+      const label = config.displaySettings.stats.labels[field] || field;
+      stats.push(`${uniqueValues.size} ${label}`);
+    });
+    
+    return stats.join(' across ') + '.';
+  }, [data, config]);
 
   return (
     <div className="flex flex-col h-full bg-white border-l border-gray-300">
       <div className="p-4 border-b border-gray-200 bg-gray-50">
-        <h2 className="text-lg font-semibold text-gray-800">Airport Data Assistant</h2>
-        {airportData && (
+        <h2 className="text-lg font-semibold text-gray-800">{config.displaySettings.title}</h2>
+        {data && (
           <p className="text-sm text-gray-600 mt-1">
-            {airportStats}
+            {dataStats}
           </p>
         )}
       </div>
@@ -52,13 +47,14 @@ export default function ChatComponent({ airportData }: ChatComponentProps) {
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {messages.length === 0 && (
           <div className="text-gray-500 text-sm">
-            <p className="mb-2">Ask me questions about the airport data, such as:</p>
-            <ul className="list-disc ml-4 space-y-1">
-              <li>How many airports are shown on the map?</li>
-              <li>Which countries have the most airports?</li>
-              <li>What types of airports are included in this dataset?</li>
-              <li>Tell me about airport distribution patterns</li>
-            </ul>
+            <p className="mb-2">{config.displaySettings.description}</p>
+            {config.exampleQuestions.length > 0 && (
+              <ul className="list-disc ml-4 space-y-1">
+                {config.exampleQuestions.map((question, index) => (
+                  <li key={index}>{question}</li>
+                ))}
+              </ul>
+            )}
           </div>
         )}
         
@@ -101,7 +97,7 @@ export default function ChatComponent({ airportData }: ChatComponentProps) {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder="Ask about the airport data..."
+            placeholder={`Ask about the ${config.displaySettings.title.toLowerCase()}...`}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             disabled={status !== 'ready'}
           />

@@ -4,35 +4,17 @@ import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import { MapboxOverlay } from '@deck.gl/mapbox';
-
-const AIRPORTS_URL = 'https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson';
-
-interface AirportFeature {
-  properties: {
-    name?: string;
-    sov_a3?: string;
-    type?: string;
-  };
-}
-
-interface AirportData {
-  features: AirportFeature[];
-}
-
-interface HoveredAirport {
-  object: AirportFeature;
-  x: number;
-  y: number;
-}
+import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
 
 interface MapComponentProps {
-  onDataLoad?: (data: AirportData) => void;
+  config: AppConfig;
+  onDataLoad?: (data: GeoJsonData) => void;
 }
 
-export default function MapComponent({ onDataLoad }: MapComponentProps) {
+export default function MapComponent({ config, onDataLoad }: MapComponentProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
-  const [hoveredAirport, setHoveredAirport] = useState<HoveredAirport | null>(null);
+  const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -68,18 +50,18 @@ export default function MapComponent({ onDataLoad }: MapComponentProps) {
     const overlay = new MapboxOverlay({
       layers: [
         new GeoJsonLayer({
-          id: 'airports',
-          data: AIRPORTS_URL,
+          id: 'data-layer',
+          data: config.dataSource.url,
           pickable: true,
           stroked: false,
           filled: true,
           pointType: 'circle',
-          pointRadiusScale: 20,
-          pointRadiusMinPixels: 2,
-          getFillColor: [255, 140, 0, 180],
-          getPointRadius: 40,
+          pointRadiusScale: config.displaySettings.layer.pointRadiusScale,
+          pointRadiusMinPixels: config.displaySettings.layer.pointRadiusMinPixels,
+          getFillColor: config.displaySettings.layer.fillColor,
+          getPointRadius: config.displaySettings.layer.pointRadius,
           onHover: (info) => {
-            setHoveredAirport(info.object ? {
+            setHoveredFeature(info.object ? {
               object: info.object,
               x: info.x,
               y: info.y
@@ -96,24 +78,31 @@ export default function MapComponent({ onDataLoad }: MapComponentProps) {
       map.current?.remove();
       map.current = null;
     };
-  }, [onDataLoad]);
+  }, [config, onDataLoad]);
 
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="w-full h-full" />
-      {hoveredAirport && (
+      {hoveredFeature && (
         <div 
           className="absolute bg-black/80 text-white p-2 rounded text-sm pointer-events-none z-10"
           style={{ 
-            left: hoveredAirport.x + 'px', 
-            top: hoveredAirport.y + 'px',
+            left: hoveredFeature.x + 'px', 
+            top: hoveredFeature.y + 'px',
             transform: 'translate(-50%, -100%)', 
             marginTop: '-10px' 
           }}
         >
-          <strong>{hoveredAirport.object.properties.name || 'Unknown Airport'}</strong><br/>
-          Type: {hoveredAirport.object.properties.type || 'N/A'}<br/>
-          Country: {hoveredAirport.object.properties.sov_a3 || 'N/A'}
+          {config.displaySettings.tooltip.fields.map((field, index) => (
+            <div key={field.key}>
+              {index === 0 ? (
+                <strong>{hoveredFeature.object.properties[field.key] || `Unknown ${field.label}`}</strong>
+              ) : (
+                <span>{field.label}: {hoveredFeature.object.properties[field.key] || 'N/A'}</span>
+              )}
+              {index < config.displaySettings.tooltip.fields.length - 1 && <br/>}
+            </div>
+          ))}
         </div>
       )}
     </div>

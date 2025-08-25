@@ -1,35 +1,39 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import MapComponent from '@/components/MapComponent';
 import ChatComponent from '@/components/ChatComponent';
+import { AppConfig, GeoJsonData } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
-interface AirportData {
-  features: Array<{
-    properties: {
-      name?: string;
-      sov_a3?: string;
-      type?: string;
-    };
-  }>;
-}
-
 export default function Home() {
-  const [airportData, setAirportData] = useState<AirportData | null>(null);
+  const [config, setConfig] = useState<AppConfig | null>(null);
+  const [data, setData] = useState<GeoJsonData | null>(null);
 
-  const handleDataLoad = useCallback((data: AirportData) => {
-    setAirportData(data);
+  useEffect(() => {
+    // Load configuration from API endpoint
+    fetch('/api/config')
+      .then(res => res.json())
+      .then(setConfig)
+      .catch(console.error);
   }, []);
+
+  const handleDataLoad = useCallback((data: GeoJsonData) => {
+    setData(data);
+  }, []);
+
+  if (!config) {
+    return <div className="h-screen flex items-center justify-center">Loading configuration...</div>;
+  }
 
   return (
     <div className="h-screen flex">
       <div className="flex-1">
-        <MapComponent onDataLoad={handleDataLoad} />
+        <MapComponent config={config} onDataLoad={handleDataLoad} />
       </div>
       <div className="w-96">
-        <ChatComponent airportData={airportData} />
+        <ChatComponent config={config} data={data} />
       </div>
     </div>
   );
