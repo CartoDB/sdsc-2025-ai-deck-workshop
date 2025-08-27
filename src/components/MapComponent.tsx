@@ -4,18 +4,19 @@ import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import { MapboxOverlay } from '@deck.gl/mapbox';
-import { AppConfig, GeoJsonData, HoveredFeature, MapViewState } from '@/types/config';
+import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
+import { useMapStore } from '@/store/mapStore';
 
 interface MapComponentProps {
   config: AppConfig;
-  viewState?: MapViewState;
   onDataLoad?: (data: GeoJsonData) => void;
 }
 
-export default function MapComponent({ config, viewState, onDataLoad }: MapComponentProps) {
+export default function MapComponent({ config, onDataLoad }: MapComponentProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
+  const viewState = useMapStore((state) => state.viewState);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;

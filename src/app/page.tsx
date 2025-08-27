@@ -3,14 +3,13 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import MapComponent from '@/components/MapComponent';
 import ChatComponent from '@/components/ChatComponent';
-import { AppConfig, GeoJsonData, MapViewState } from '@/types/config';
+import { AppConfig, GeoJsonData } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
 export default function Home() {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [data, setData] = useState<GeoJsonData | null>(null);
-  const [mapViewState, setMapViewState] = useState<MapViewState | undefined>();
 
   useEffect(() => {
     // Load configuration from API endpoint
@@ -34,7 +33,6 @@ export default function Home() {
       <div className="flex-1">
         <MapComponent 
           config={config} 
-          viewState={mapViewState}
           onDataLoad={handleDataLoad} 
         />
       </div>
@@ -42,7 +40,6 @@ export default function Home() {
         <ChatComponent 
           config={config} 
           data={data}
-          setMapViewState={setMapViewState}
         />
       </div>
     </div>

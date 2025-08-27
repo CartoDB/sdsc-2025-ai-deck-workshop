@@ -3,15 +3,15 @@
 import React, { useMemo, useState } from 'react';
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { AppConfig, GeoJsonData, MapViewState } from '@/types/config';
+import { AppConfig, GeoJsonData } from '@/types/config';
+import { tools, ToolName } from '@/tools';
 
 interface ChatComponentProps {
   config: AppConfig;
   data?: GeoJsonData;
-  setMapViewState: (viewState: MapViewState) => void;
 }
 
-export default function ChatComponent({ config, data, setMapViewState }: ChatComponentProps) {
+export default function ChatComponent({ config, data }: ChatComponentProps) {
   console.log('[ChatComponent] Component rendered with data features count:', data?.features?.length || 0);
   console.log('[ChatComponent] Data object:', data ? 'exists' : 'null');
   
@@ -25,48 +25,14 @@ export default function ChatComponent({ config, data, setMapViewState }: ChatCom
       console.log('[ChatComponent] Tool call received:', JSON.stringify(toolCall, null, 2));
       
       // Handle client-side tool execution
-      if (toolCall.toolName === 'zoomToHome') {
-        console.log('[ChatComponent] Executing zoomToHome tool client-side');
-        
-        const viewState = {
-          longitude: -0.1276,  // London coordinates
-          latitude: 51.5074,
-          zoom: 10
-        };
-        
-        setMapViewState(viewState);
-        
-        // Return result to AI
-        addToolResult({
-          toolCallId: toolCall.toolCallId,
-          tool: toolCall.toolName,
-          output: 'Successfully zoomed to London coordinates.',
-        });
-      }
+      const toolName = toolCall.toolName as ToolName;
+      const tool = tools[toolName];
       
-      if (toolCall.toolName === 'zoomToLocation') {
-        console.log('[ChatComponent] Executing zoomToLocation tool client-side');
-        const { longitude, latitude, locationName, zoom = 10 } = toolCall.input as {
-          longitude: number;
-          latitude: number;
-          locationName: string;
-          zoom?: number;
-        };
-        
-        const viewState = {
-          longitude,
-          latitude,
-          zoom
-        };
-        
-        setMapViewState(viewState);
-        
-        // Return result to AI
-        addToolResult({
-          toolCallId: toolCall.toolCallId,
-          tool: toolCall.toolName,
-          output: `Successfully zoomed to ${locationName} at coordinates ${latitude}, ${longitude}.`,
-        });
+      if (tool) {
+        console.log(`[ChatComponent] Executing ${toolName} tool client-side`);
+        tool.execute(toolCall, addToolResult);
+      } else {
+        console.warn(`[ChatComponent] Unknown tool: ${toolName}`);
       }
     },
   });
