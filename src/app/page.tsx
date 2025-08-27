@@ -25,11 +25,6 @@ export default function Home() {
     setData(data);
   }, []);
 
-  const handleMapViewUpdate = useCallback((viewState: MapViewState) => {
-    console.log('[HomePage] Map view update received:', viewState);
-    setMapViewState(viewState);
-  }, []);
-
   if (!config) {
     return <div className="h-screen flex items-center justify-center">Loading configuration...</div>;
   }
@@ -47,7 +42,7 @@ export default function Home() {
         <ChatComponent 
           config={config} 
           data={data}
-          onMapViewUpdate={handleMapViewUpdate}
+          setMapViewState={setMapViewState}
         />
       </div>
     </div>

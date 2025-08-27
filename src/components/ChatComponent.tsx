@@ -1,21 +1,22 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useChat, lastAssistantMessageIsCompleteWithToolCalls } from '@ai-sdk/react';
+import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
+import { useChat } from '@ai-sdk/react';
 import { AppConfig, GeoJsonData, MapViewState } from '@/types/config';
 
 interface ChatComponentProps {
   config: AppConfig;
   data?: GeoJsonData;
-  onMapViewUpdate?: (viewState: MapViewState) => void;
+  setMapViewState: (viewState: MapViewState) => void;
 }
 
-export default function ChatComponent({ config, data, onMapViewUpdate }: ChatComponentProps) {
+export default function ChatComponent({ config, data, setMapViewState }: ChatComponentProps) {
   console.log('[ChatComponent] Component rendered with data features count:', data?.features?.length || 0);
   console.log('[ChatComponent] Data object:', data ? 'exists' : 'null');
   
   const { messages, sendMessage, status, addToolResult } = useChat({
-    api: '/api/chat',
+    transport: new DefaultChatTransport({ api: '/api/chat', }),
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
     async onFinish(message) {
       console.log('[ChatComponent] Message finished:', message);
@@ -24,7 +25,7 @@ export default function ChatComponent({ config, data, onMapViewUpdate }: ChatCom
       console.log('[ChatComponent] Tool call received:', JSON.stringify(toolCall, null, 2));
       
       // Handle client-side tool execution
-      if (toolCall.toolName === 'zoomToHome' && !toolCall.result) {
+      if (toolCall.toolName === 'zoomToHome') {
         console.log('[ChatComponent] Executing zoomToHome tool client-side');
         
         const viewState = {
@@ -33,19 +34,17 @@ export default function ChatComponent({ config, data, onMapViewUpdate }: ChatCom
           zoom: 10
         };
         
-        console.log('[ChatComponent] Calling onMapViewUpdate with:', viewState);
-        if (onMapViewUpdate) {
-          onMapViewUpdate(viewState);
-        }
+        setMapViewState(viewState);
         
         // Return result to AI
         addToolResult({
           toolCallId: toolCall.toolCallId,
-          result: 'Successfully zoomed to London coordinates.',
+          tool: toolCall.toolName,
+          output: 'Successfully zoomed to London coordinates.',
         });
       }
       
-      if (toolCall.toolName === 'zoomToLocation' && !toolCall.result) {
+      if (toolCall.toolName === 'zoomToLocation') {
         console.log('[ChatComponent] Executing zoomToLocation tool client-side');
         const { longitude, latitude, locationName, zoom = 10 } = toolCall.input as {
           longitude: number;
@@ -60,15 +59,13 @@ export default function ChatComponent({ config, data, onMapViewUpdate }: ChatCom
           zoom
         };
         
-        console.log('[ChatComponent] Calling onMapViewUpdate with:', viewState);
-        if (onMapViewUpdate) {
-          onMapViewUpdate(viewState);
-        }
+        setMapViewState(viewState);
         
         // Return result to AI
         addToolResult({
           toolCallId: toolCall.toolCallId,
-          result: `Successfully zoomed to ${locationName} at coordinates ${latitude}, ${longitude}.`,
+          tool: toolCall.toolName,
+          output: `Successfully zoomed to ${locationName} at coordinates ${latitude}, ${longitude}.`,
         });
       }
     },
