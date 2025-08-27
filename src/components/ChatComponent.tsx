@@ -30,7 +30,8 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
       
       if (tool) {
         console.log(`[ChatComponent] Executing ${toolName} tool client-side`);
-        tool.execute(toolCall, addToolResult);
+        const result = tool(toolCall);
+        addToolResult(result);
       } else {
         console.warn(`[ChatComponent] Unknown tool: ${toolName}`);
       }
