@@ -20,15 +20,26 @@ export async function POST(req: Request) {
       model: anthropic('claude-3-haiku-20240307'),
       system: `${config.systemPrompt}
 
-You have access to a map control tool:
+You have access to map control tools:
 - zoomToHome: Zoom the map to London (home location)
+- zoomToLocation: Zoom the map to any location by coordinates
 
+When users ask to go to a specific city, airport, or location (like "take me to Miami", "show me Paris", "zoom to Tokyo"), use the zoomToLocation tool with the appropriate coordinates.
 When users ask to go home, zoom home, or see London, use the zoomToHome tool.`,
       messages: convertToModelMessages(messages),
       tools: {
         zoomToHome: {
           description: 'Zoom the map to London (home location)',
           inputSchema: z.object({}),
+        },
+        zoomToLocation: {
+          description: 'Zoom the map to a specific location by coordinates',
+          inputSchema: z.object({
+            longitude: z.number().describe('Longitude coordinate of the location'),
+            latitude: z.number().describe('Latitude coordinate of the location'),
+            locationName: z.string().describe('Name of the location for user feedback'),
+            zoom: z.number().optional().describe('Zoom level (default: 10)'),
+          }),
         }
       }
     });

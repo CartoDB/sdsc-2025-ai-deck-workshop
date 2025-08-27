@@ -40,6 +40,33 @@ export default function ChatComponent({ config, data, onMapViewUpdate }: ChatCom
           result: 'Successfully zoomed to London coordinates.',
         });
       }
+      
+      if (toolCall.toolName === 'zoomToLocation' && !toolCall.result) {
+        console.log('[ChatComponent] Executing zoomToLocation tool client-side');
+        const { longitude, latitude, locationName, zoom = 10 } = toolCall.input as {
+          longitude: number;
+          latitude: number;
+          locationName: string;
+          zoom?: number;
+        };
+        
+        const viewState = {
+          longitude,
+          latitude,
+          zoom
+        };
+        
+        console.log('[ChatComponent] Calling onMapViewUpdate with:', viewState);
+        if (onMapViewUpdate) {
+          onMapViewUpdate(viewState);
+        }
+        
+        // Return result to AI
+        addToolResult({
+          toolCallId: toolCall.toolCallId,
+          result: `Successfully zoomed to ${locationName} at coordinates ${latitude}, ${longitude}.`,
+        });
+      }
     },
   });
   const [input, setInput] = useState('');
