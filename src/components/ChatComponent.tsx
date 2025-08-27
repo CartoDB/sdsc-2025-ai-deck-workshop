@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useMemo, useState } from 'react';
-import { useChat } from '@ai-sdk/react';
+import { useChat, lastAssistantMessageIsCompleteWithToolCalls } from '@ai-sdk/react';
 import { AppConfig, GeoJsonData, MapViewState } from '@/types/config';
 
 interface ChatComponentProps {
@@ -16,6 +16,10 @@ export default function ChatComponent({ config, data, onMapViewUpdate }: ChatCom
   
   const { messages, sendMessage, status, addToolResult } = useChat({
     api: '/api/chat',
+    sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
+    async onFinish(message) {
+      console.log('[ChatComponent] Message finished:', message);
+    },
     onToolCall: ({ toolCall }) => {
       console.log('[ChatComponent] Tool call received:', JSON.stringify(toolCall, null, 2));
       
