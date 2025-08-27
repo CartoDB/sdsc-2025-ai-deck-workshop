@@ -10,4 +10,4 @@ export interface ToolResult {
   output: string;
 }
 
-export type ToolFunction = (toolCall: ToolCall) => ToolResult;
+export type ToolFunction = (toolCall: ToolCall) => string;

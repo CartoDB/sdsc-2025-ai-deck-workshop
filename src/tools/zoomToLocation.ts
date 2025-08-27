@@ -1,7 +1,7 @@
 import { useMapStore } from '@/store/mapStore';
-import { ToolFunction, ToolCall, ToolResult } from './types';
+import { ToolFunction, ToolCall } from './types';
 
-export const zoomToLocation: ToolFunction = (toolCall: ToolCall): ToolResult => {
+export const zoomToLocation: ToolFunction = (toolCall: ToolCall): string => {
   console.log('[zoomToLocation] Executing tool client-side');
   
   const { longitude, latitude, locationName, zoom = 10 } = toolCall.input as {
@@ -14,10 +14,5 @@ export const zoomToLocation: ToolFunction = (toolCall: ToolCall): ToolResult => 
   // Use Zustand store directly
   useMapStore.getState().flyToLocation(longitude, latitude, zoom);
   
-  // Return result parameters
-  return {
-    toolCallId: toolCall.toolCallId,
-    tool: toolCall.toolName,
-    output: `Successfully zoomed to ${locationName} at coordinates ${latitude}, ${longitude}.`,
-  };
+  return `Successfully zoomed to ${locationName} at coordinates ${latitude}, ${longitude}.`;
 };

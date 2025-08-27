@@ -1,16 +1,8 @@
 import { useMapStore } from '@/store/mapStore';
-import { ToolFunction, ToolCall, ToolResult } from './types';
+import { ToolFunction, ToolCall } from './types';
 
-export const zoomToHome: ToolFunction = (toolCall: ToolCall): ToolResult => {
-  console.log('[zoomToHome] Executing tool client-side');
-  
-  // Use Zustand store directly
+export const zoomToHome: ToolFunction = (toolCall: ToolCall): string => {
   useMapStore.getState().flyToHome();
   
-  // Return result parameters
-  return {
-    toolCallId: toolCall.toolCallId,
-    tool: toolCall.toolName,
-    output: 'Successfully zoomed to London coordinates.',
-  };
+  return 'Successfully zoomed to London coordinates.';
 };
