@@ -2,19 +2,45 @@
 
 import React, { useMemo, useState } from 'react';
 import { useChat } from '@ai-sdk/react';
-import { DefaultChatTransport } from 'ai';
-import { AppConfig, GeoJsonData } from '@/types/config';
+import { AppConfig, GeoJsonData, MapViewState } from '@/types/config';
 
 interface ChatComponentProps {
   config: AppConfig;
   data?: GeoJsonData;
+  onMapViewUpdate?: (viewState: MapViewState) => void;
 }
 
-export default function ChatComponent({ config, data }: ChatComponentProps) {
-  const { messages, sendMessage, status } = useChat({
-    transport: new DefaultChatTransport({
-      api: '/api/chat',
-    }),
+export default function ChatComponent({ config, data, onMapViewUpdate }: ChatComponentProps) {
+  console.log('[ChatComponent] Component rendered with data features count:', data?.features?.length || 0);
+  console.log('[ChatComponent] Data object:', data ? 'exists' : 'null');
+  
+  const { messages, sendMessage, status, addToolResult } = useChat({
+    api: '/api/chat',
+    onToolCall: ({ toolCall }) => {
+      console.log('[ChatComponent] Tool call received:', JSON.stringify(toolCall, null, 2));
+      
+      // Handle client-side tool execution
+      if (toolCall.toolName === 'zoomToHome' && !toolCall.result) {
+        console.log('[ChatComponent] Executing zoomToHome tool client-side');
+        
+        const viewState = {
+          longitude: -0.1276,  // London coordinates
+          latitude: 51.5074,
+          zoom: 10
+        };
+        
+        console.log('[ChatComponent] Calling onMapViewUpdate with:', viewState);
+        if (onMapViewUpdate) {
+          onMapViewUpdate(viewState);
+        }
+        
+        // Return result to AI
+        addToolResult({
+          toolCallId: toolCall.toolCallId,
+          result: 'Successfully zoomed to London coordinates.',
+        });
+      }
+    },
   });
   const [input, setInput] = useState('');
 
@@ -87,8 +113,11 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
         onSubmit={(e) => {
           e.preventDefault();
           if (input.trim()) {
+            console.log('[ChatComponent] Sending message:', input);
             sendMessage({ text: input });
             setInput('');
+          } else {
+            console.log('[ChatComponent] Empty input, not sending');
           }
         }}
         className="p-4 border-t border-gray-200"

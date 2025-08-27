@@ -4,14 +4,15 @@ import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import { MapboxOverlay } from '@deck.gl/mapbox';
-import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
+import { AppConfig, GeoJsonData, HoveredFeature, MapViewState } from '@/types/config';
 
 interface MapComponentProps {
   config: AppConfig;
+  viewState?: MapViewState;
   onDataLoad?: (data: GeoJsonData) => void;
 }
 
-export default function MapComponent({ config, onDataLoad }: MapComponentProps) {
+export default function MapComponent({ config, viewState, onDataLoad }: MapComponentProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
@@ -67,7 +68,12 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
               y: info.y
             } : null);
           },
-          onDataLoad: onDataLoad
+          onDataLoad: (loadedData) => {
+            console.log('[MapComponent] Data loaded with features:', loadedData?.features?.length || 0);
+            if (onDataLoad) {
+              onDataLoad(loadedData);
+            }
+          }
         })
       ]
     });
@@ -79,6 +85,21 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       map.current = null;
     };
   }, [config, onDataLoad]);
+
+  // Handle view state updates from chat
+  useEffect(() => {
+    console.log('[MapComponent] ViewState effect triggered with:', viewState);
+    if (map.current && viewState) {
+      console.log('[MapComponent] Flying to coordinates:', viewState);
+      map.current.flyTo({
+        center: [viewState.longitude, viewState.latitude],
+        zoom: viewState.zoom,
+        duration: 2000 // 2 second animation
+      });
+    } else {
+      console.log('[MapComponent] No map instance or viewState:', { hasMap: !!map.current, viewState });
+    }
+  }, [viewState]);
 
   return (
     <div className="relative w-full h-full">

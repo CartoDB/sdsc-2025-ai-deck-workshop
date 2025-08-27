@@ -60,3 +60,9 @@ export interface HoveredFeature {
   x: number;
   y: number;
 }
+
+export interface MapViewState {
+  longitude: number;
+  latitude: number;
+  zoom: number;
+}

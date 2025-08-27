@@ -3,13 +3,14 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import MapComponent from '@/components/MapComponent';
 import ChatComponent from '@/components/ChatComponent';
-import { AppConfig, GeoJsonData } from '@/types/config';
+import { AppConfig, GeoJsonData, MapViewState } from '@/types/config';
 
 export const dynamic = 'force-dynamic';
 
 export default function Home() {
   const [config, setConfig] = useState<AppConfig | null>(null);
   const [data, setData] = useState<GeoJsonData | null>(null);
+  const [mapViewState, setMapViewState] = useState<MapViewState | undefined>();
 
   useEffect(() => {
     // Load configuration from API endpoint
@@ -20,7 +21,13 @@ export default function Home() {
   }, []);
 
   const handleDataLoad = useCallback((data: GeoJsonData) => {
+    console.log('[HomePage] Data loaded callback with features:', data?.features?.length || 0);
     setData(data);
+  }, []);
+
+  const handleMapViewUpdate = useCallback((viewState: MapViewState) => {
+    console.log('[HomePage] Map view update received:', viewState);
+    setMapViewState(viewState);
   }, []);
 
   if (!config) {
@@ -30,10 +37,18 @@ export default function Home() {
   return (
     <div className="h-screen flex">
       <div className="flex-1">
-        <MapComponent config={config} onDataLoad={handleDataLoad} />
+        <MapComponent 
+          config={config} 
+          viewState={mapViewState}
+          onDataLoad={handleDataLoad} 
+        />
       </div>
       <div className="w-96">
-        <ChatComponent config={config} data={data} />
+        <ChatComponent 
+          config={config} 
+          data={data}
+          onMapViewUpdate={handleMapViewUpdate}
+        />
       </div>
     </div>
   );
