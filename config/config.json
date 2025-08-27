@@ -1,0 +1,38 @@
+{
+  "dataSource": {
+    "url": "https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson",
+    "type": "geojson"
+  },
+  "displaySettings": {
+    "title": "Airport Data Assistant",
+    "description": "Ask me questions about the airport data",
+    "layer": {
+      "fillColor": [255, 140, 0, 180],
+      "pointRadius": 40,
+      "pointRadiusScale": 20,
+      "pointRadiusMinPixels": 2
+    },
+    "tooltip": {
+      "nameField": "name",
+      "fields": [
+        {"key": "name", "label": "Name"},
+        {"key": "type", "label": "Type"},
+        {"key": "sov_a3", "label": "Country"}
+      ]
+    },
+    "stats": {
+      "countField": "features",
+      "groupByFields": ["sov_a3", "type"],
+      "labels": {
+        "sov_a3": "countries",
+        "type": "airport types"
+      }
+    }
+  },
+  "exampleQuestions": [
+    "How many airports are shown on the map?",
+    "Which countries have the most airports?",
+    "What types of airports are included in this dataset?",
+    "Tell me about airport distribution patterns"
+  ]
+}
