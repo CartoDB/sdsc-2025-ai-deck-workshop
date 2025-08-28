@@ -71,6 +71,12 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
           },
           onDataLoad: (loadedData) => {
             console.log('[MapComponent] Data loaded with features:', loadedData?.features?.length || 0);
+            
+            // Store data globally for tool access
+            if (typeof window !== 'undefined') {
+              window.mapData = loadedData;
+            }
+            
             if (onDataLoad) {
               onDataLoad(loadedData);
             }
