@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { AppConfig, GeoJsonData } from '@/types/config';
@@ -14,6 +14,9 @@ interface ChatComponentProps {
 export default function ChatComponent({ config, data }: ChatComponentProps) {
   console.log('[ChatComponent] Component rendered with data features count:', data?.features?.length || 0);
   console.log('[ChatComponent] Data object:', data ? 'exists' : 'null');
+  
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   
   const { messages, sendMessage, status, addToolResult } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat', }),
@@ -42,6 +45,34 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
     },
   });
   const [input, setInput] = useState('');
+
+  // Debounced scroll function
+  const scrollToBottom = useCallback(() => {
+    if (scrollTimeoutRef.current) {
+      clearTimeout(scrollTimeoutRef.current);
+    }
+    
+    scrollTimeoutRef.current = setTimeout(() => {
+      messagesEndRef.current?.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'end'
+      });
+    }, 100);
+  }, []);
+
+  // Scroll when messages change or when status changes
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages, status, scrollToBottom]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (scrollTimeoutRef.current) {
+        clearTimeout(scrollTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const dataStats = useMemo(() => {
     if (!data?.features) return '';
@@ -106,6 +137,9 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
             <div className="text-sm">Thinking...</div>
           </div>
         )}
+        
+        {/* Invisible element to scroll to */}
+        <div ref={messagesEndRef} />
       </div>
       
       <form
