@@ -5,7 +5,7 @@
   },
   "displaySettings": {
     "title": "Airport Data Assistant",
-    "description": "Ask me questions about the airport data",
+    "description": "Features:",
     "layer": {
       "fillColor": [255, 140, 0, 180],
       "pointRadius": 40,
@@ -21,18 +21,11 @@
       ]
     },
     "stats": {
-      "countField": "features",
-      "groupByFields": ["sov_a3", "type"],
-      "labels": {
-        "sov_a3": "countries",
-        "type": "airport types"
-      }
+      "countField": "features"
     }
   },
   "exampleQuestions": [
-    "How many airports are shown on the map?",
-    "Which countries have the most airports?",
-    "What types of airports are included in this dataset?",
-    "Tell me about airport distribution patterns"
+    "Zoom to a location on map, e.g. 'take me to New York'",
+    "Look up information from dataset, e.g. 'tell me about JFK airport'"
   ]
-}
+} 

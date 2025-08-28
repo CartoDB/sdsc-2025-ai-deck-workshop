@@ -79,14 +79,7 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
     
     const totalFeatures = data.features.length;
     const stats: string[] = [`Currently viewing ${totalFeatures} features`];
-    
-    config.displaySettings.stats.groupByFields.forEach(field => {
-      const uniqueValues = new Set(data.features.map((f) => f.properties[field]).filter(Boolean));
-      const label = config.displaySettings.stats.labels[field] || field;
-      stats.push(`${uniqueValues.size} ${label}`);
-    });
-    
-    return stats.join(' across ') + '.';
+    return stats;
   }, [data, config]);
 
   return (
