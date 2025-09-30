@@ -5,6 +5,7 @@ import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } fro
 import { useChat } from '@ai-sdk/react';
 import { AppConfig, GeoJsonData } from '@/types/config';
 import { tools, ToolName } from '@/tools';
+import { callMCPTool } from '@/lib/mcpClient';
 
 interface ChatComponentProps {
   config: AppConfig;
@@ -14,7 +15,7 @@ interface ChatComponentProps {
 export default function ChatComponent({ config, data }: ChatComponentProps) {
   console.log('[ChatComponent] Component rendered with data features count:', data?.features?.length || 0);
   console.log('[ChatComponent] Data object:', data ? 'exists' : 'null');
-  
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   
@@ -24,13 +25,13 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
     async onFinish(message) {
       console.log('[ChatComponent] Message finished:', message);
     },
-    onToolCall: ({ toolCall }) => {
+    onToolCall: async ({ toolCall }) => {
       console.log('[ChatComponent] Tool call received:', JSON.stringify(toolCall, null, 2));
-      
+
       // Handle client-side tool execution
       const toolName = toolCall.toolName as ToolName;
       const tool = tools[toolName];
-      
+
       if (tool) {
         console.log(`[ChatComponent] Executing ${toolName} tool client-side`);
         const output = tool(toolCall);
@@ -40,7 +41,48 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
           output,
         });
       } else {
-        console.warn(`[ChatComponent] Unknown tool: ${toolName}`);
+        // Check if this is an MCP tool
+        console.log(`[ChatComponent] Checking if ${toolName} is an MCP tool`);
+        try {
+          console.log(`[ChatComponent] Calling MCP tool: ${toolName}`);
+
+          const result = await callMCPTool(toolName, toolCall.input);
+
+          if (result.content && result.content.length > 0) {
+            const textContent = result.content[0].text;
+
+            // Try to parse and format JSON
+            try {
+              const data = JSON.parse(textContent);
+              const output = `MCP Tool "${toolName}" result:\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``;
+              addToolResult({
+                toolCallId: toolCall.toolCallId,
+                tool: toolCall.toolName,
+                output,
+              });
+            } catch {
+              // Not JSON, return as text
+              addToolResult({
+                toolCallId: toolCall.toolCallId,
+                tool: toolCall.toolName,
+                output: `MCP Tool "${toolName}" result:\n${textContent}`,
+              });
+            }
+          } else {
+            addToolResult({
+              toolCallId: toolCall.toolCallId,
+              tool: toolCall.toolName,
+              output: `MCP tool executed but returned no content`,
+            });
+          }
+        } catch (error) {
+          console.error(`[ChatComponent] Error executing MCP tool:`, error);
+          addToolResult({
+            toolCallId: toolCall.toolCallId,
+            tool: toolCall.toolName,
+            output: `Error executing MCP tool: ${error instanceof Error ? error.message : 'Unknown error'}`,
+          });
+        }
       }
     },
   });
