@@ -3,6 +3,7 @@ import { convertToModelMessages, streamText, UIMessage } from 'ai';
 import { loadConfig } from '@/lib/config';
 import { logToFile } from '@/lib/logger';
 import { listMCPTools } from '@/lib/mcpClient';
+import { mcpToolConfig } from '@/config/mcpTools';
 import { z } from 'zod';
 
 export const maxDuration = 30;
@@ -83,29 +84,23 @@ export async function POST(req: Request) {
       }
     };
 
-    // Pattern for valid Anthropic tool names
-    const validToolNamePattern = /^[a-zA-Z0-9_-]{1,128}$/;
+    // Add only whitelisted MCP tools
+    const whitelistedMcpTools = mcpTools.filter(tool => mcpToolConfig.whitelist.includes(tool.name));
 
-    // Add MCP tools dynamically - only those with valid names
-    const validMcpTools = mcpTools.filter(tool => validToolNamePattern.test(tool.name));
-    const invalidMcpTools = mcpTools.filter(tool => !validToolNamePattern.test(tool.name));
+    logToFile('[API] Whitelisted MCP tools', {
+      count: whitelistedMcpTools.length,
+      tools: whitelistedMcpTools.map(t => t.name)
+    });
 
-    if (invalidMcpTools.length > 0) {
-      logToFile('[API] Skipped invalid MCP tools', {
-        count: invalidMcpTools.length,
-        tools: invalidMcpTools.map(t => t.name)
-      });
-    }
-
-    for (const mcpTool of validMcpTools) {
+    for (const mcpTool of whitelistedMcpTools) {
       tools[mcpTool.name] = {
         description: mcpTool.description,
         inputSchema: jsonSchemaToZod(mcpTool.inputSchema),
       };
     }
 
-    // Build system prompt with only valid MCP tools
-    const mcpToolDescriptions = validMcpTools.map(t => `- ${t.name}: ${t.description}`).join('\n');
+    // Build system prompt with only whitelisted MCP tools
+    const mcpToolDescriptions = whitelistedMcpTools.map(t => `- ${t.name}: ${t.description}`).join('\n');
 
     const result = streamText({
       // model: anthropic('claude-3-7-sonnet-latest'), // Smart

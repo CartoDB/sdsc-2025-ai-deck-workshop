@@ -3,9 +3,7 @@
  * Handles communication with CARTO MCP server
  */
 
-const MCP_SERVER_URL = 'https://gcp-us-east1.api.carto.com/mcp/ac_cb7b9151'
-const API_TOKEN =
-  'eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfY2I3YjkxNTEiLCJqdGkiOiI5NjM1Zjk2NSJ9.iiT3epMxX5tdzIYQJpj7Fe_50Z5XQ7yOCfJ5w6nVas8'
+import { mcpToolConfig } from '@/config/mcpTools';
 
 export interface MCPTool {
   name: string
@@ -52,10 +50,10 @@ export async function listMCPTools(): Promise<MCPTool[]> {
   }
 
   try {
-    const response = await fetch(MCP_SERVER_URL, {
+    const response = await fetch(mcpToolConfig.serverUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
+        Authorization: `Bearer ${mcpToolConfig.apiToken}`,
         'Content-Type': 'application/json',
         Accept: 'application/json, text/event-stream'
       },
@@ -97,10 +95,10 @@ export async function callMCPTool(
   console.log('[MCP] Calling tool:', toolName, 'with args:', args)
 
   try {
-    const response = await fetch(MCP_SERVER_URL, {
+    const response = await fetch(mcpToolConfig.serverUrl, {
       method: 'POST',
       headers: {
-        Authorization: `Bearer ${API_TOKEN}`,
+        Authorization: `Bearer ${mcpToolConfig.apiToken}`,
         'Content-Type': 'application/json',
         Accept: 'application/json, text/event-stream'
       },
