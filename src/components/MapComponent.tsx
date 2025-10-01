@@ -3,9 +3,11 @@
 import React, { useRef, useEffect, useState } from 'react';
 import maplibregl from 'maplibre-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
+import { SolidPolygonLayer } from '@deck.gl/layers';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
+import { parseWKT } from '@/lib/wktParser';
 
 interface MapComponentProps {
   config: AppConfig;
@@ -15,8 +17,10 @@ interface MapComponentProps {
 export default function MapComponent({ config, onDataLoad }: MapComponentProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
+  const overlay = useRef<MapboxOverlay | null>(null);
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
   const viewState = useMapStore((state) => state.viewState);
+  const wktGeometry = useMapStore((state) => state.wktGeometry);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -49,7 +53,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       zoom: 2
     });
 
-    const overlay = new MapboxOverlay({
+    overlay.current = new MapboxOverlay({
       layers: [
         new GeoJsonLayer({
           id: 'data-layer',
@@ -71,12 +75,12 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
           },
           onDataLoad: (loadedData) => {
             console.log('[MapComponent] Data loaded with features:', loadedData?.features?.length || 0);
-            
+
             // Store data globally for tool access
             if (typeof window !== 'undefined') {
               window.mapData = loadedData;
             }
-            
+
             if (onDataLoad) {
               onDataLoad(loadedData);
             }
@@ -85,7 +89,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       ]
     });
 
-    map.current.addControl(overlay as maplibregl.IControl);
+    map.current.addControl(overlay.current as maplibregl.IControl);
 
     return () => {
       map.current?.remove();
@@ -107,6 +111,86 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       console.log('[MapComponent] No map instance or viewState:', { hasMap: !!map.current, viewState });
     }
   }, [viewState]);
+
+  // Handle WKT geometry updates
+  useEffect(() => {
+    if (!overlay.current) return;
+
+    console.log('[MapComponent] WKT geometry effect triggered with:', wktGeometry);
+
+    // Get existing data layer
+    const dataLayer = new GeoJsonLayer({
+      id: 'data-layer',
+      data: config.dataSource.url,
+      pickable: true,
+      stroked: false,
+      filled: true,
+      pointType: 'circle',
+      pointRadiusScale: config.displaySettings.layer.pointRadiusScale,
+      pointRadiusMinPixels: config.displaySettings.layer.pointRadiusMinPixels,
+      getFillColor: config.displaySettings.layer.fillColor,
+      getPointRadius: config.displaySettings.layer.pointRadius,
+      onHover: (info) => {
+        setHoveredFeature(info.object ? {
+          object: info.object,
+          x: info.x,
+          y: info.y
+        } : null);
+      },
+      onDataLoad: (loadedData) => {
+        console.log('[MapComponent] Data loaded with features:', loadedData?.features?.length || 0);
+
+        // Store data globally for tool access
+        if (typeof window !== 'undefined') {
+          window.mapData = loadedData;
+        }
+
+        if (onDataLoad) {
+          onDataLoad(loadedData);
+        }
+      }
+    });
+
+    const layers = [dataLayer];
+
+    // Add WKT geometry layer if present
+    if (wktGeometry) {
+      try {
+        const parsed = parseWKT(wktGeometry.wkt);
+        console.log('[MapComponent] Parsed WKT geometry:', parsed);
+
+        const polygonLayer = new SolidPolygonLayer({
+          id: 'wkt-geometry-layer',
+          data: [parsed],
+          getPolygon: (d: any) => {
+            // Handle both Polygon and MultiPolygon
+            if (d.type === 'Polygon') {
+              // For Polygon, coordinates is [outer ring, ...holes]
+              // We only use the outer ring for SolidPolygonLayer
+              return d.coordinates[0];
+            } else if (d.type === 'MultiPolygon') {
+              // For MultiPolygon, return the first polygon's outer ring
+              // Note: SolidPolygonLayer doesn't support MultiPolygon directly
+              // You may need to create multiple layers or flatten
+              return d.coordinates[0][0];
+            }
+            return [];
+          },
+          getFillColor: wktGeometry.color || [0, 100, 200, 100],
+          getLineColor: [0, 0, 0, 200],
+          getLineWidth: 2,
+          lineWidthMinPixels: 1,
+          pickable: true
+        });
+
+        layers.push(polygonLayer);
+      } catch (error) {
+        console.error('[MapComponent] Error parsing WKT geometry:', error);
+      }
+    }
+
+    overlay.current.setProps({ layers });
+  }, [wktGeometry, config, onDataLoad]);
 
   return (
     <div className="relative w-full h-full">

@@ -1,10 +1,10 @@
-import { anthropic } from '@ai-sdk/anthropic';
-import { convertToModelMessages, streamText, UIMessage } from 'ai';
-import { loadConfig } from '@/lib/config';
-import { logToFile } from '@/lib/logger';
-import { listMCPTools } from '@/lib/mcpClient';
-import { mcpToolConfig } from '@/config/mcpTools';
-import { z } from 'zod';
+import { anthropic } from "@ai-sdk/anthropic";
+import { convertToModelMessages, streamText, UIMessage } from "ai";
+import { loadConfig } from "@/lib/config";
+import { logToFile } from "@/lib/logger";
+import { listMCPTools } from "@/lib/mcpClient";
+import { mcpToolConfig } from "@/config/mcpTools";
+import { z } from "zod";
 
 export const maxDuration = 30;
 
@@ -21,16 +21,16 @@ function jsonSchemaToZod(schema: any): z.ZodTypeAny {
     let zodType: z.ZodTypeAny;
 
     switch (propSchema.type) {
-      case 'string':
+      case "string":
         zodType = z.string();
         break;
-      case 'number':
+      case "number":
         zodType = z.number();
         break;
-      case 'boolean':
+      case "boolean":
         zodType = z.boolean();
         break;
-      case 'object':
+      case "object":
         zodType = z.record(z.any());
         break;
       default:
@@ -50,46 +50,81 @@ function jsonSchemaToZod(schema: any): z.ZodTypeAny {
 export async function POST(req: Request) {
   try {
     const { messages }: { messages: UIMessage[] } = await req.json();
-    logToFile('[API] Received request', {
+    logToFile("[API] Received request", {
       messagesCount: messages.length,
-      lastMessage: messages[messages.length - 1]
+      lastMessage: messages[messages.length - 1],
     });
 
     const config = loadConfig();
 
     // Fetch MCP tools dynamically
     const mcpTools = await listMCPTools();
-    logToFile('[API] Loaded MCP tools', { count: mcpTools.length, tools: mcpTools.map(t => t.name) });
+    logToFile("[API] Loaded MCP tools", {
+      count: mcpTools.length,
+      tools: mcpTools.map((t) => t.name),
+    });
 
     // Build tools object with both local and MCP tools
     const tools: Record<string, any> = {
       zoomToHome: {
-        description: 'Zoom the map to London (home location)',
+        description: "Zoom the map to London (home location)",
         inputSchema: z.object({}),
       },
       zoomToLocation: {
-        description: 'Zoom the map to a specific location by coordinates',
+        description: "Zoom the map to a specific location by coordinates",
         inputSchema: z.object({
-          longitude: z.number().describe('Longitude coordinate of the location'),
-          latitude: z.number().describe('Latitude coordinate of the location'),
-          locationName: z.string().describe('Name of the location for user feedback'),
-          zoom: z.number().optional().describe('Zoom level (default: 10)'),
+          longitude: z
+            .number()
+            .describe("Longitude coordinate of the location"),
+          latitude: z.number().describe("Latitude coordinate of the location"),
+          locationName: z
+            .string()
+            .describe("Name of the location for user feedback"),
+          zoom: z.number().optional().describe("Zoom level (default: 10)"),
         }),
       },
       lookupAirport: {
-        description: 'Look up detailed information about an airport by its IATA code from the loaded dataset. Use this tool whenever users ask for information about any airport.',
+        description:
+          "Look up detailed information about an airport by its IATA code from the loaded dataset. Use this tool whenever users ask for information about any airport.",
         inputSchema: z.object({
-          iataCode: z.string().describe('3-letter IATA airport code (e.g. "MAD" for Madrid, "LAX" for Los Angeles)'),
+          iataCode: z
+            .string()
+            .describe(
+              '3-letter IATA airport code (e.g. "MAD" for Madrid, "LAX" for Los Angeles)'
+            ),
         }),
-      }
+      },
+      drawWktGeometry: {
+        description:
+          "Draw a WKT (Well-Known Text) geometry on the map using deck.gl SolidPolygonLayer. Supports POLYGON and MULTIPOLYGON formats. Use this to visualize geometric shapes like buffers, boundaries, or analysis results.",
+        inputSchema: z.object({
+          wkt: z
+            .string()
+            .describe(
+              'WKT geometry string (e.g. "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")'
+            ),
+          name: z
+            .string()
+            .optional()
+            .describe("Optional name for the geometry"),
+          color: z
+            .array(z.number())
+            .optional()
+            .describe(
+              "Optional RGBA color array [r, g, b, a] where values are 0-255 for RGB and 0-255 for alpha"
+            ),
+        }),
+      },
     };
 
     // Add only whitelisted MCP tools
-    const whitelistedMcpTools = mcpTools.filter(tool => mcpToolConfig.whitelist.includes(tool.name));
+    const whitelistedMcpTools = mcpTools.filter((tool) =>
+      mcpToolConfig.whitelist.includes(tool.name)
+    );
 
-    logToFile('[API] Whitelisted MCP tools', {
+    logToFile("[API] Whitelisted MCP tools", {
       count: whitelistedMcpTools.length,
-      tools: whitelistedMcpTools.map(t => t.name)
+      tools: whitelistedMcpTools.map((t) => t.name),
     });
 
     for (const mcpTool of whitelistedMcpTools) {
@@ -100,21 +135,27 @@ export async function POST(req: Request) {
     }
 
     // Build system prompt with only whitelisted MCP tools
-    const mcpToolDescriptions = whitelistedMcpTools.map(t => `- ${t.name}: ${t.description}`).join('\n');
+    const mcpToolDescriptions = whitelistedMcpTools
+      .map((t) => `- ${t.name}: ${t.description}`)
+      .join("\n");
 
     const result = streamText({
       // model: anthropic('claude-3-7-sonnet-latest'), // Smart
-      model: anthropic('claude-3-5-haiku-latest'), // Fast
+      model: anthropic("claude-3-5-haiku-latest"), // Fast
       onToolCall: ({ toolCall }) => {
-        logToFile('[API] Tool call received', { toolCall });
-        console.log('[API] Tool call received:', JSON.stringify(toolCall, null, 2));
+        logToFile("[API] Tool call received", { toolCall });
+        console.log(
+          "[API] Tool call received:",
+          JSON.stringify(toolCall, null, 2)
+        );
       },
       system: `${config.systemPrompt}
 
-You have access to map control tools:
+You have access to map control and visualization tools:
 - zoomToHome: Zoom the map to London (home location)
 - zoomToLocation: Zoom the map to any location by coordinates
 - lookupAirport: Look up detailed information about an airport by its IATA code
+- drawWktGeometry: Draw WKT geometry (POLYGON/MULTIPOLYGON) on the map to visualize shapes and boundaries
 
 You also have access to CARTO MCP geospatial workflow tools:
 ${mcpToolDescriptions}
@@ -125,18 +166,21 @@ When users ask to go to a specific city, airport, or location (like "take me to 
 When users ask to go home, zoom home, or see London, use the zoomToHome tool.
 When users ask for information about a specific airport (like "tell me about Madrid airport", "info about LAX", "give me info about JFK"), you MUST determine the IATA code for that airport and use the lookupAirport tool to retrieve the actual data from the dataset.
 
-For geospatial analysis, use the appropriate MCP tools. These tools can perform operations like creating buffers around points, enriching areas with demographic data, analyzing fires in boundaries, etc.`,
+For geospatial analysis, use the appropriate MCP tools. These tools can perform operations like creating buffers around points, enriching areas with demographic data, analyzing fires in boundaries, etc.
+
+IMPORTANT: When you receive WKT geometry output from MCP tools (like get_buffer_around_location), ALWAYS use the drawWktGeometry tool to visualize the result on the map. Extract the WKT string from the MCP tool output and pass it to drawWktGeometry. After the geometry is zoom to the location using the zoomToLocation tool.`,
       messages: convertToModelMessages(messages),
-      tools
+      tools,
     });
 
     return result.toUIMessageStreamResponse();
   } catch (error) {
-    console.error('Chat API error:', error);
-    logToFile('[API] Error', { error: error.message });
-    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+    console.error("Chat API error:", error);
+    logToFile("[API] Error", { error: error.message });
+    return new Response(JSON.stringify({ error: "Internal server error" }), {
       status: 500,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { "Content-Type": "application/json" },
     });
   }
 }
+
