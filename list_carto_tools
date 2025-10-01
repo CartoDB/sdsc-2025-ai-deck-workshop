@@ -1,0 +1,76 @@
+#!/usr/bin/env node
+
+/**
+ * List CARTO MCP Tools
+ * Lists available tools from the CARTO MCP server
+ */
+
+// Configuration
+const MCP_SERVER_URL = "https://gcp-us-east1.api.carto.com/mcp/ac_cb7b9151";
+const API_TOKEN =
+  "eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfY2I3YjkxNTEiLCJqdGkiOiI5NjM1Zjk2NSJ9.iiT3epMxX5tdzIYQJpj7Fe_50Z5XQ7yOCfJ5w6nVas8";
+
+console.log("🔍 CARTO MCP Tools List");
+console.log("=".repeat(60));
+console.log(`📍 MCP Server: ${MCP_SERVER_URL}`);
+console.log("=".repeat(60));
+console.log("");
+
+async function listTools() {
+  console.log("📋 Fetching available MCP tools...\n");
+
+  const request = {
+    jsonrpc: "2.0",
+    method: "tools/list",
+    id: 1,
+  };
+
+  try {
+    const response = await fetch(MCP_SERVER_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${API_TOKEN}`,
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
+      },
+      body: JSON.stringify(request),
+    });
+
+    const text = await response.text();
+
+    // MCP returns SSE format, parse it
+    const lines = text.split("\n");
+    let jsonData = null;
+
+    for (const line of lines) {
+      if (line.startsWith("data: ")) {
+        jsonData = JSON.parse(line.substring(6));
+      }
+    }
+
+    if (jsonData && jsonData.result && jsonData.result.tools) {
+      console.log(`✅ Found ${jsonData.result.tools.length} tool(s):\n`);
+
+      jsonData.result.tools.forEach((tool, index) => {
+        console.log(`   ${index + 1}. ${tool.name}`);
+      });
+
+      console.log("");
+      console.log("=".repeat(60));
+      return true;
+    } else {
+      console.error("❌ Unexpected response format:", jsonData);
+      return false;
+    }
+  } catch (error) {
+    console.error("❌ Error listing tools:", error.message);
+    return false;
+  }
+}
+
+async function main() {
+  const success = await listTools();
+  process.exit(success ? 0 : 1);
+}
+
+main();
