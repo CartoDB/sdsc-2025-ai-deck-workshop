@@ -5,6 +5,7 @@ import maplibregl from 'maplibre-gl';
 import { GeoJsonLayer } from '@deck.gl/layers';
 import { SolidPolygonLayer } from '@deck.gl/layers';
 import { MapboxOverlay } from '@deck.gl/mapbox';
+import { EditableGeoJsonLayer, DrawPolygonMode } from '@deck.gl-community/editable-layers';
 import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
 import { parseSync } from '@loaders.gl/core';
@@ -20,6 +21,8 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
   const map = useRef<maplibregl.Map | null>(null);
   const overlay = useRef<MapboxOverlay | null>(null);
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawnFeatures, setDrawnFeatures] = useState<any>({ type: 'FeatureCollection', features: [] });
   const viewState = useMapStore((state) => state.viewState);
   const wktGeometry = useMapStore((state) => state.wktGeometry);
 
@@ -55,6 +58,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     });
 
     overlay.current = new MapboxOverlay({
+      interleaved: true,
       layers: [
         new GeoJsonLayer({
           id: 'data-layer',
@@ -154,8 +158,6 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
 
     const layers = [dataLayer];
 
-
-
     // Add WKT geometry layer if present
     if (wktGeometry) {
       try {
@@ -177,20 +179,111 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       }
     }
 
+    // Add editable layer for drawing
+    if (isDrawing) {
+      const editableLayer = new EditableGeoJsonLayer({
+        id: 'editable-layer',
+        data: drawnFeatures,
+        mode: DrawPolygonMode,
+        selectedFeatureIndexes: [],
+        onEdit: ({ updatedData, editType }) => {
+          console.log('[MapComponent] Edit event:', editType, updatedData);
+          setDrawnFeatures(updatedData);
+        },
+        // Styling
+        getFillColor: [200, 0, 0, 100],
+        getLineColor: [200, 0, 0, 255],
+        getLineWidth: 2,
+        lineWidthMinPixels: 2,
+        // Edit handles styling
+        getEditHandlePointColor: [255, 0, 0, 255],
+        getEditHandlePointRadius: 8,
+        editHandlePointRadiusMinPixels: 8,
+        // Enable picking
+        pickable: true,
+        autoHighlight: true
+      });
+
+      layers.push(editableLayer);
+    }
+
     overlay.current.setProps({ layers });
-  }, [wktGeometry, config, onDataLoad]);
+  }, [wktGeometry, config, onDataLoad, isDrawing, drawnFeatures]);
+
+  const handleDrawClick = () => {
+    if (isDrawing) {
+      console.log('[MapComponent] Finishing drawing, features:', drawnFeatures);
+
+      // Re-enable map dragging
+      if (map.current) {
+        map.current.dragPan.enable();
+      }
+
+      // Finish drawing - convert to WKT and save
+      if (drawnFeatures.features.length > 0) {
+        const feature = drawnFeatures.features[0];
+        if (feature.geometry.type === 'Polygon') {
+          // Convert GeoJSON coordinates to WKT
+          const coords = feature.geometry.coordinates[0];
+          const wktCoords = coords.map((c: number[]) => `${c[0]} ${c[1]}`).join(', ');
+          const wkt = `POLYGON((${wktCoords}))`;
+
+          useMapStore.getState().setWktGeometry({
+            wkt,
+            name: 'User drawn region',
+            color: [200, 0, 0, 100]
+          });
+        }
+      }
+
+      setIsDrawing(false);
+      setDrawnFeatures({ type: 'FeatureCollection', features: [] });
+    } else {
+      // Start drawing
+      console.log('[MapComponent] Starting drawing mode');
+      setIsDrawing(true);
+      setDrawnFeatures({ type: 'FeatureCollection', features: [] });
+
+      // Disable map dragging when drawing
+      if (map.current) {
+        map.current.dragPan.disable();
+      }
+    }
+  };
 
   return (
     <div className="relative w-full h-full">
       <div ref={mapContainer} className="w-full h-full" />
+
+      {/* Draw Region Button */}
+      <div className="absolute top-4 right-4 z-20">
+        <button
+          onClick={handleDrawClick}
+          className={`px-4 py-2 rounded font-medium shadow-lg transition-colors ${
+            isDrawing
+              ? 'bg-red-500 hover:bg-red-600 text-white'
+              : 'bg-white hover:bg-gray-100 text-gray-800'
+          }`}
+        >
+          {isDrawing ? 'Finish Drawing' : 'Draw Region'}
+        </button>
+      </div>
+
+      {/* Drawing mode indicator */}
+      {isDrawing && (
+        <div className="absolute top-20 right-4 bg-yellow-100 text-yellow-800 px-4 py-2 rounded shadow-lg z-20">
+          Click on the map to draw polygon vertices
+        </div>
+      )}
+
       {hoveredFeature && (
-        <div 
+        <div
           className="absolute bg-black/80 text-white p-2 rounded text-sm pointer-events-none z-10"
-          style={{ 
-            left: hoveredFeature.x + 'px', 
+          style={{
+            left: hoveredFeature.x + 'px',
             top: hoveredFeature.y + 'px',
-            transform: 'translate(-50%, -100%)', 
-            marginTop: '-10px' 
+            transform: 'translate(-50%, -100%)',
+            marginTop: '-10px'
           }}
         >
           {config.displaySettings.tooltip.fields.map((field, index) => (

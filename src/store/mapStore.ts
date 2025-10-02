@@ -19,7 +19,7 @@ interface MapStore {
 
 export const useMapStore = create<MapStore>((set) => ({
   viewState: undefined,
-  // wktGeometry: dummyWkt, // For testing
+  //wktGeometry: dummyWkt, // For testing
   wktGeometry: undefined,
 
   setViewState: (viewState: MapViewState) => {
