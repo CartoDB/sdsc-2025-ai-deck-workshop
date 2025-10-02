@@ -105,14 +105,22 @@ export async function callMCPTool(
       body: JSON.stringify(request)
     })
 
+    console.log('[MCP] Response status:', response.status, response.statusText)
+
     const text = await response.text()
+    console.log('[MCP] Raw response text:', text.substring(0, 500)) // Log first 500 chars
+
     const jsonData = parseSSEResponse(text)
+    console.log('[MCP] Parsed response:', jsonData)
 
     if (jsonData && jsonData.result) {
+      console.log('[MCP] Tool call successful, result:', jsonData.result)
       return jsonData.result
     } else if (jsonData && jsonData.error) {
+      console.error('[MCP] Tool call error:', jsonData.error)
       throw new Error(`MCP error: ${jsonData.error.message}`)
     } else {
+      console.error('[MCP] Unexpected response format:', jsonData)
       throw new Error('Unexpected MCP response format')
     }
   } catch (error) {

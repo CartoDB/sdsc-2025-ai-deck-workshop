@@ -115,6 +115,11 @@ export async function POST(req: Request) {
             ),
         }),
       },
+      getDrawnRegion: {
+        description:
+          "Get the WKT geometry of the region that the user has drawn on the map. Use this tool when users ask about the drawn region (e.g., 'what is the area of this region?', 'analyze this region'). Returns the WKT string that can be passed to MCP tools like get_area.",
+        inputSchema: z.object({}),
+      },
     };
 
     // Add only whitelisted MCP tools
@@ -156,6 +161,7 @@ You have access to map control and visualization tools:
 - zoomToLocation: Zoom the map to any location by coordinates
 - lookupAirport: Look up detailed information about an airport by its IATA code
 - drawWktGeometry: Draw WKT geometry (POLYGON/MULTIPOLYGON) on the map to visualize shapes and boundaries
+- getDrawnRegion: Get the WKT geometry of the region the user has drawn on the map (for use with MCP tools)
 
 You also have access to CARTO MCP geospatial workflow tools:
 ${mcpToolDescriptions}
@@ -168,7 +174,12 @@ When users ask for information about a specific airport (like "tell me about Mad
 
 For geospatial analysis, use the appropriate MCP tools. These tools can perform operations like creating buffers around points, enriching areas with demographic data, analyzing fires in boundaries, etc.
 
-IMPORTANT: When you receive WKT geometry output from MCP tools (like get_buffer_around_location), ALWAYS use the drawWktGeometry tool to visualize the result on the map. Extract the WKT string from the MCP tool output and pass it to drawWktGeometry. After the geometry is zoom to the location using the zoomToLocation tool.`,
+IMPORTANT: When you receive WKT geometry output from MCP tools (like get_buffer_around_location), ALWAYS use the drawWktGeometry tool to visualize the result on the map. Extract the WKT string from the MCP tool output and pass it to drawWktGeometry. After the geometry is drawn, zoom to the location using the zoomToLocation tool.
+
+IMPORTANT: When users ask about the drawn region (e.g., "what is the area of this region?", "how big is this region?"), you MUST:
+1. First use the getDrawnRegion tool to retrieve the WKT geometry
+2. Then use the appropriate MCP tool (like get_area) with the WKT string from step 1
+3. Present the result to the user in a clear, understandable format`,
       messages: convertToModelMessages(messages),
       tools,
     });

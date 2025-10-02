@@ -17,5 +17,5 @@ export const mcpToolConfig: MCPToolConfig = {
 
   // Whitelist of MCP tools to include
   // Only tools in this list will be exposed to Claude
-  whitelist: ["get_isolines_around_location", "get_buffer_around_location"],
+  whitelist: ["get_isolines_around_location", "get_buffer_around_location", "get_area"],
 };
