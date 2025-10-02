@@ -11,9 +11,8 @@ export interface MCPToolConfig {
 
 export const mcpToolConfig: MCPToolConfig = {
   // CARTO MCP Server
-  serverUrl: "https://gcp-us-east1.api.carto.com/mcp/ac_cb7b9151",
-  apiToken:
-    "eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfY2I3YjkxNTEiLCJqdGkiOiJhOGE2NmM0OSJ9.QfHjGrVXnnObLY3_IzPczqJxiWjkiLvaonsWRnSeO4w",
+  serverUrl: process.env.CARTO_MCP_SERVER_URL || "",
+  apiToken: process.env.CARTO_API_TOKEN || "",
 
   // Whitelist of MCP tools to include
   // Only tools in this list will be exposed to Claude

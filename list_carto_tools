@@ -5,10 +5,36 @@
  * Lists available tools from the CARTO MCP server
  */
 
+const fs = require('fs');
+const path = require('path');
+
+// Load environment variables from .env.local
+const envPath = path.join(__dirname, '.env.local');
+
+try {
+  const envFile = fs.readFileSync(envPath, 'utf8');
+  envFile.split('\n').forEach(line => {
+    const match = line.match(/^([^#][^=]+)=(.*)$/);
+    if (match) {
+      const key = match[1].trim();
+      const value = match[2].trim();
+      process.env[key] = value;
+    }
+  });
+} catch (error) {
+  console.error('Error reading .env.local file:', error.message);
+  process.exit(1);
+}
+
 // Configuration
-const MCP_SERVER_URL = "https://gcp-us-east1.api.carto.com/mcp/ac_cb7b9151";
-const API_TOKEN =
-  "eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfY2I3YjkxNTEiLCJqdGkiOiI5NjM1Zjk2NSJ9.iiT3epMxX5tdzIYQJpj7Fe_50Z5XQ7yOCfJ5w6nVas8";
+const MCP_SERVER_URL = process.env.CARTO_MCP_SERVER_URL;
+const API_TOKEN = process.env.CARTO_API_TOKEN;
+
+if (!MCP_SERVER_URL || !API_TOKEN) {
+  console.error('❌ Missing required environment variables: CARTO_MCP_SERVER_URL and CARTO_API_TOKEN');
+  console.error('   Please ensure .env.local file exists with these variables');
+  process.exit(1);
+}
 
 console.log("🔍 CARTO MCP Tools List");
 console.log("=".repeat(60));

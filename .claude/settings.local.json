@@ -18,7 +18,14 @@
       "WebFetch(domain:ai-sdk.dev)",
       "Bash(kill:*)",
       "WebFetch(domain:github.com)",
-      "Bash(yarn lint)"
+      "Bash(yarn lint)",
+      "Bash(node:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.carto.com)",
+      "Bash(curl -X POST https://gcp-us-east1.api.carto.com/mcp/ac_cb7b9151 -H \"Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfY2I3YjkxNTEiLCJqdGkiOiI5NjM1Zjk2NSJ9.iiT3epMxX5tdzIYQJpj7Fe_50Z5XQ7yOCfJ5w6nVas8\" -H \"Content-Type: application/json\" -d '{\"\"\"\"jsonrpc\"\"\"\":\"\"\"\"2.0\"\"\"\",\"\"\"\"method\"\"\"\":\"\"\"\"tools/list\"\"\"\",\"\"\"\"id\"\"\"\":1}')",
+      "Bash(curl -X POST 'https://gcp-us-east1.api.carto.com/mcp/ac_cb7b9151' -H 'Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJhIjoiYWNfY2I3YjkxNTEiLCJqdGkiOiI5NjM1Zjk2NSJ9.iiT3epMxX5tdzIYQJpj7Fe_50Z5XQ7yOCfJ5w6nVas8' -H 'Content-Type: application/json' -d '{\"\"jsonrpc\"\":\"\"2.0\"\",\"\"method\"\":\"\"tools/list\"\",\"\"id\"\":1}')",
+      "Bash(chmod:*)",
+      "Bash(./list_carto_tools)"
     ],
     "deny": [],
     "ask": []
