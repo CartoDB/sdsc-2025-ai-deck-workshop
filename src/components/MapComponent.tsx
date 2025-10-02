@@ -20,7 +20,8 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
   const overlay = useRef<MapboxOverlay | null>(null);
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
   const viewState = useMapStore((state) => state.viewState);
-  const wktGeometry = useMapStore((state) => state.wktGeometry);
+  //const wktGeometry = useMapStore((state) => state.wktGeometry);
+  const wktGeometry = JSON.parse('{"wkt":"POLYGON((2.35726016436118 48.9464704828915, 2.3304675443777 48.9453900661247, 2.30451449406218 48.9408915671981, 2.28040314115278 48.9331487500659, 2.25906343338637 48.9224605882924, 2.24131688814726 48.9092395578269, 2.22784480424491 48.8939955201511, 2.21916218985091 48.8773158560617, 2.21559839021603 48.8598426553018, 2.21728509390913 48.8422478748125, 2.22415207600881 48.8252074453478, 2.23593071872575 48.8093753317936, 2.25216504940415 48.7953585380802, 2.2722297641751 48.7836939961238, 2.29535447021118 48.7748281939946, 2.32065318439559 48.7691002864668, 2.34715797213538 48.7667292964758, 2.37385549587701 48.7678058640378, 2.39972516651554 48.7722888348708, 2.42377755020631 48.780006809066, 2.44509167669737 48.790664595209, 2.46284992296592 48.8038543417855, 2.47636920865056 48.8190709499925, 2.48512733944276 48.8357312148877, 2.48878347344873 48.853196000041, 2.48719186518437 48.870794629691, 2.48040826233037 48.8878505870932, 2.46868858903524 48.9037075434082, 2.4524798403508 48.9177547126584, 2.43240342536352 48.9294505385479, 2.40923151797644 48.9383437703018, 2.38385728719066 48.9440910772004, 2.35726016436118 48.9464704828915))","name":"Paris 10km Buffer","color":[0,0,255,100]}')
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -153,15 +154,17 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
 
     const layers = [dataLayer];
 
+
+
     // Add WKT geometry layer if present
     if (wktGeometry) {
       try {
-        const parsed = parseWKT(wktGeometry.wkt);
-        console.log('[MapComponent] Parsed WKT geometry:', parsed);
-
         const polygonLayer = new SolidPolygonLayer({
           id: 'wkt-geometry-layer',
-          data: [parsed],
+          data: [wktGeometry.wkt],
+          dataTransform: wkt => {
+            return wkt.map(d => parseWKT(d));
+          },
           getPolygon: (d: any) => {
             // Handle both Polygon and MultiPolygon
             if (d.type === 'Polygon') {
