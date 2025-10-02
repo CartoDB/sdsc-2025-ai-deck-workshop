@@ -7,15 +7,15 @@
  * No dependencies on CARTO platform code - pure Node.js
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Load environment variables from .env.local
-const envPath = path.join(__dirname, '.env.local');
+const envPath = path.join(__dirname, ".env.local");
 
 try {
-  const envFile = fs.readFileSync(envPath, 'utf8');
-  envFile.split('\n').forEach(line => {
+  const envFile = fs.readFileSync(envPath, "utf8");
+  envFile.split("\n").forEach((line) => {
     const match = line.match(/^([^#][^=]+)=(.*)$/);
     if (match) {
       const key = match[1].trim();
@@ -24,178 +24,186 @@ try {
     }
   });
 } catch (error) {
-  console.error('Error reading .env.local file:', error.message);
+  console.error("Error reading .env.local file:", error.message);
   process.exit(1);
 }
 
 // Configuration
-const MCP_SERVER_URL = process.env.CARTO_MCP_SERVER_URL
-const API_TOKEN = process.env.CARTO_API_TOKEN
-const WORKFLOW_ID = '3fa0a0d0-24e2-452f-9824-5886346e9352'
+const MCP_SERVER_URL = process.env.CARTO_MCP_SERVER_URL;
+const API_TOKEN = process.env.CARTO_API_TOKEN;
+const WORKFLOW_ID = "54901000-61d3-49f6-a9ae-ec6a38a220f4";
 
 if (!MCP_SERVER_URL || !API_TOKEN) {
-  console.error('❌ Missing required environment variables: CARTO_MCP_SERVER_URL and CARTO_API_TOKEN');
-  console.error('   Please ensure .env.local file exists with these variables');
+  console.error(
+    "❌ Missing required environment variables: CARTO_MCP_SERVER_URL and CARTO_API_TOKEN"
+  );
+  console.error("   Please ensure .env.local file exists with these variables");
   process.exit(1);
 }
 
 // Madrid center coordinates
 const MADRID_CENTER = {
-  latitude: '40',
-  longitude: '3'
-}
+  latitude: 40,
+  longitude: 3,
+};
 
-console.log('🚀 CARTO MCP Workflow Test')
-console.log('='.repeat(60))
-console.log(`📍 MCP Server: ${MCP_SERVER_URL}`)
-console.log(`📊 Workflow ID: ${WORKFLOW_ID}`)
-console.log(`🗺️  Test Input: Madrid Center (${MADRID_CENTER.latitude}, ${MADRID_CENTER.longitude})`)
-console.log('='.repeat(60))
-console.log('')
+console.log("🚀 CARTO MCP Workflow Test");
+console.log("=".repeat(60));
+console.log(`📍 MCP Server: ${MCP_SERVER_URL}`);
+console.log(`📊 Workflow ID: ${WORKFLOW_ID}`);
+console.log(
+  `🗺️  Test Input: Madrid Center (${MADRID_CENTER.latitude}, ${MADRID_CENTER.longitude})`
+);
+console.log("=".repeat(60));
+console.log("");
 
 async function listTools() {
-  console.log('📋 Step 1: Listing available MCP tools...\n')
+  console.log("📋 Step 1: Listing available MCP tools...\n");
 
   const request = {
-    jsonrpc: '2.0',
-    method: 'tools/list',
-    id: 1
-  }
+    jsonrpc: "2.0",
+    method: "tools/list",
+    id: 1,
+  };
 
   try {
     const response = await fetch(MCP_SERVER_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json, text/event-stream'
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
       },
-      body: JSON.stringify(request)
-    })
+      body: JSON.stringify(request),
+    });
 
-    const text = await response.text()
+    const text = await response.text();
 
     // MCP returns SSE format, parse it
-    const lines = text.split('\n')
-    let jsonData = null
+    const lines = text.split("\n");
+    let jsonData = null;
 
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        jsonData = JSON.parse(line.substring(6))
+      if (line.startsWith("data: ")) {
+        jsonData = JSON.parse(line.substring(6));
       }
     }
 
     if (jsonData && jsonData.result && jsonData.result.tools) {
-      console.log(`✅ Found ${jsonData.result.tools.length} tool(s):\n`)
+      console.log(`✅ Found ${jsonData.result.tools.length} tool(s):\n`);
 
       jsonData.result.tools.forEach((tool, index) => {
-        console.log(`   ${index + 1}. ${tool.name}`)
-        console.log(`      Description: ${tool.description}`)
-        console.log(`      Input Schema:`)
-        console.log(`      ${JSON.stringify(tool.inputSchema, null, 6).split('\n').join('\n      ')}`)
-        console.log('')
-      })
+        console.log(`   ${index + 1}. ${tool.name}`);
+        console.log(`      Description: ${tool.description}`);
+        console.log(`      Input Schema:`);
+        console.log(
+          `      ${JSON.stringify(tool.inputSchema, null, 6)
+            .split("\n")
+            .join("\n      ")}`
+        );
+        console.log("");
+      });
 
-      return jsonData.result.tools[0]?.name
+      return jsonData.result.tools[0]?.name;
     } else {
-      console.error('❌ Unexpected response format:', jsonData)
-      return null
+      console.error("❌ Unexpected response format:", jsonData);
+      return null;
     }
   } catch (error) {
-    console.error('❌ Error listing tools:', error.message)
-    return null
+    console.error("❌ Error listing tools:", error.message);
+    return null;
   }
 }
 
 async function callWorkflow(toolName) {
-  console.log(`\n🔧 Step 2: Calling workflow "${toolName}"...\n`)
+  console.log(`\n🔧 Step 2: Calling workflow "${toolName}"...\n`);
 
   const request = {
-    jsonrpc: '2.0',
-    method: 'tools/call',
+    jsonrpc: "2.0",
+    method: "tools/call",
     params: {
       name: toolName,
-      arguments: MADRID_CENTER
+      arguments: MADRID_CENTER,
     },
-    id: 2
-  }
+    id: 2,
+  };
 
-  console.log('📤 Request:')
-  console.log(JSON.stringify(request, null, 2))
-  console.log('')
+  console.log("📤 Request:");
+  console.log(JSON.stringify(request, null, 2));
+  console.log("");
 
   try {
     const response = await fetch(MCP_SERVER_URL, {
-      method: 'POST',
+      method: "POST",
       headers: {
         Authorization: `Bearer ${API_TOKEN}`,
-        'Content-Type': 'application/json',
-        Accept: 'application/json, text/event-stream'
+        "Content-Type": "application/json",
+        Accept: "application/json, text/event-stream",
       },
-      body: JSON.stringify(request)
-    })
+      body: JSON.stringify(request),
+    });
 
-    const text = await response.text()
+    const text = await response.text();
 
     // Parse SSE response
-    const lines = text.split('\n')
-    let jsonData = null
+    const lines = text.split("\n");
+    let jsonData = null;
 
     for (const line of lines) {
-      if (line.startsWith('data: ')) {
-        jsonData = JSON.parse(line.substring(6))
+      if (line.startsWith("data: ")) {
+        jsonData = JSON.parse(line.substring(6));
       }
     }
 
-    console.log('📥 Response:')
-    console.log(JSON.stringify(jsonData, null, 2))
-    console.log('')
+    console.log("📥 Response:");
+    console.log(JSON.stringify(jsonData, null, 2));
+    console.log("");
 
     if (jsonData && jsonData.result && jsonData.result.content) {
-      const content = jsonData.result.content[0]
+      const content = jsonData.result.content[0];
 
-      if (content.text.startsWith('Error')) {
-        console.error('❌ Workflow execution failed!')
-        console.error(`   ${content.text}`)
-        return false
+      if (content.text.startsWith("Error")) {
+        console.error("❌ Workflow execution failed!");
+        console.error(`   ${content.text}`);
+        return false;
       } else {
-        console.log('✅ Workflow executed successfully!')
-        console.log(`   Result: ${content.text}`)
-        return true
+        console.log("✅ Workflow executed successfully!");
+        console.log(`   Result: ${content.text}`);
+        return true;
       }
     } else if (jsonData && jsonData.error) {
-      console.error('❌ MCP error:', jsonData.error.message)
-      return false
+      console.error("❌ MCP error:", jsonData.error.message);
+      return false;
     }
   } catch (error) {
-    console.error('❌ Error calling workflow:', error.message)
-    return false
+    console.error("❌ Error calling workflow:", error.message);
+    return false;
   }
 }
 
 async function main() {
-  const toolName = await listTools()
+  const toolName = await listTools();
 
   if (!toolName) {
-    console.error('\n❌ Could not find any MCP tools. Exiting.')
-    process.exit(1)
+    console.error("\n❌ Could not find any MCP tools. Exiting.");
+    process.exit(1);
   }
 
-  const success = await callWorkflow(toolName)
+  const success = await callWorkflow(toolName);
 
-  console.log('\n' + '='.repeat(60))
+  console.log("\n" + "=".repeat(60));
   if (success) {
-    console.log('✅ Test completed successfully!')
+    console.log("✅ Test completed successfully!");
   } else {
-    console.log('❌ Test failed - workflow execution error')
-    console.log('\n🔍 Next steps to debug:')
-    console.log('   1. Check workflow configuration in database')
-    console.log('   2. Verify MCP tool output endpoint')
-    console.log('   3. Check workflow parameter mapping')
+    console.log("❌ Test failed - workflow execution error");
+    console.log("\n🔍 Next steps to debug:");
+    console.log("   1. Check workflow configuration in database");
+    console.log("   2. Verify MCP tool output endpoint");
+    console.log("   3. Check workflow parameter mapping");
   }
-  console.log('='.repeat(60))
+  console.log("=".repeat(60));
 
-  process.exit(success ? 0 : 1)
+  process.exit(success ? 0 : 1);
 }
 
-main()
+main();
