@@ -13,9 +13,6 @@ interface ChatComponentProps {
 }
 
 export default function ChatComponent({ config, data }: ChatComponentProps) {
-  console.log('[ChatComponent] Component rendered with data features count:', data?.features?.length || 0);
-  console.log('[ChatComponent] Data object:', data ? 'exists' : 'null');
-
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   
