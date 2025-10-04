@@ -1,21 +1,14 @@
-# SDSC Workshop Demo - Airport Data Visualization
+# SDSC Workshop - Spatial AI Demo
 
-An interactive web application that combines MapLibre GL JS with deck.gl for visualizing global airport data, integrated with Claude AI for intelligent data analysis.
+An interactive map application demonstrating Claude AI integration with spatial data using CARTO's MCP server. Features airport data visualization and AI-powered spatial analysis.
 
 ## Features
 
-- **Interactive Map**: MapLibre GL JS map with custom CARTO basemap
-- **Airport Visualization**: deck.gl overlay showing global airports from Natural Earth data
-- **AI-Powered Chat**: Chat interface powered by Claude AI that understands the airport data context
-- **Real-time Interaction**: Hover over airports to see details, ask the AI questions about patterns and distributions
-
-## Tech Stack
-
-- Next.js 15 with TypeScript
-- MapLibre GL JS for mapping
-- deck.gl for data visualization
-- Vercel AI SDK with Anthropic Claude
-- Tailwind CSS for styling
+- **Interactive Map**: MapLibre GL with deck.gl visualization layers
+- **Drawing Tools**: Draw and analyze custom regions on the map
+- **Claude AI Chat**: Natural language interface for spatial queries and map control
+- **CARTO MCP Integration**: Access spatial analysis tools (isolines, buffers, area calculations)
+- **Custom Tools**: Location search, airport lookup, geometry visualization
 
 ## Setup
 
@@ -24,30 +17,30 @@ An interactive web application that combines MapLibre GL JS with deck.gl for vis
    yarn install
    ```
 
-2. Create a `.env.local` file and add your Anthropic API key:
+2. Create `.env.local` with required keys:
    ```
-   ANTHROPIC_API_KEY=your_api_key_here
+   ANTHROPIC_API_KEY=your_anthropic_key
+   CARTO_MCP_SERVER_URL=your_carto_mcp_url
+   CARTO_API_TOKEN=your_carto_token
    ```
 
-3. Start the development server:
+3. Run the development server:
    ```bash
-   npx next dev
+   yarn dev
    ```
 
-4. Open [http://localhost:3000](http://localhost:3000) to view the application
+4. Open [http://localhost:3000](http://localhost:3000)
 
 ## Usage
 
-- The left side shows an interactive map with airport data
-- Hover over airport dots to see details
-- Use the chat interface on the right to ask questions about the data
-- Example questions:
-  - "How many airports are shown on the map?"
-  - "Which countries have the most airports?"
-  - "What types of airports are included?"
-  - "Tell me about airport distribution patterns"
+- **Map**: Navigate and interact with the airport data layer
+- **Chat**: Ask questions or give commands like:
+  - "Draw a 30-minute isoline around San Francisco"
+  - "Show me airports near London"
+  - "Calculate the area of the drawn region"
+  - "Zoom to New York"
+- **Drawing**: Use the drawing tools to create regions for spatial analysis
 
-## Data Source
+## Tech Stack
 
-Airport data is sourced from Natural Earth:
-https://d2ad6b4ur7yvpq.cloudfront.net/naturalearth-3.3.0/ne_10m_airports.geojson
+Next.js 15, TypeScript, MapLibre GL, deck.gl, Claude AI (Vercel AI SDK), CARTO MCP Server
