@@ -74,6 +74,19 @@
     d3-scale "^4.0.2"
     h3-js "4.1.0"
 
+"@carto/api-client@^0.5.19":
+  version "0.5.20"
+  resolved "https://registry.yarnpkg.com/@carto/api-client/-/api-client-0.5.20.tgz#c97291d7cb87e65e59690806fbf3676b61212eb9"
+  integrity sha512-3YvyMbQd1hLDNXp2QkhgpwkZp75Ib/vk7KxR6pHHTS+r2c/zpPM52EV/yZQGuG05k7hG0PlDmPS7cNaKHCaX1w==
+  dependencies:
+    "@loaders.gl/schema" "^4.3.3"
+    "@types/geojson" "^7946.0.16"
+    d3-format "^3.1.0"
+    d3-scale "^4.0.2"
+    h3-js "^4.1.0"
+    jsep "^1.4.0"
+    quadbin "^0.4.1-alpha.0"
+
 "@deck.gl-community/editable-layers@^9.1.1":
   version "9.1.1"
   resolved "https://registry.yarnpkg.com/@deck.gl-community/editable-layers/-/editable-layers-9.1.1.tgz#66495bf7efed803673b965504701a5e2ed258e07"
@@ -172,6 +185,35 @@
     "@loaders.gl/tiles" "^4.2.0"
     "@luma.gl/core" "~9.1.9"
     "@luma.gl/shadertools" "~9.1.9"
+    "@math.gl/web-mercator" "^4.1.0"
+    "@types/d3-array" "^3.0.2"
+    "@types/d3-color" "^1.4.2"
+    "@types/d3-scale" "^3.0.0"
+    cartocolor "^5.0.2"
+    d3-array "^3.2.0"
+    d3-color "^3.1.0"
+    d3-format "^3.1.0"
+    d3-scale "^4.0.0"
+    earcut "^2.2.4"
+    h3-js "^4.1.0"
+    moment-timezone "^0.5.33"
+    pbf "^3.2.1"
+    quadbin "^0.4.0"
+
+"@deck.gl/carto@^9.2.1":
+  version "9.2.1"
+  resolved "https://registry.yarnpkg.com/@deck.gl/carto/-/carto-9.2.1.tgz#eeb245a7696c7591b975f86fef3b52af7041447f"
+  integrity sha512-vIYE1I6trSVuVLqQxdazxFopjm7OL2QOC+PB05A/VkO8gNuxvzOujtqn1SBCcRlKEd/V0plotVSKUYRd/c8oJw==
+  dependencies:
+    "@carto/api-client" "^0.5.19"
+    "@loaders.gl/compression" "^4.2.0"
+    "@loaders.gl/gis" "^4.2.0"
+    "@loaders.gl/loader-utils" "^4.2.0"
+    "@loaders.gl/mvt" "^4.2.0"
+    "@loaders.gl/schema" "^4.2.0"
+    "@loaders.gl/tiles" "^4.2.0"
+    "@luma.gl/core" "^9.2.2"
+    "@luma.gl/shadertools" "^9.2.2"
     "@math.gl/web-mercator" "^4.1.0"
     "@types/d3-array" "^3.0.2"
     "@types/d3-color" "^1.4.2"
@@ -834,7 +876,7 @@
   resolved "https://registry.yarnpkg.com/@luma.gl/constants/-/constants-9.2.2.tgz#90217c1193a5faf5a94a4bc9623413aa0d5a7f1e"
   integrity sha512-XURMF0gSh0ImZltYa/PCe9KgmopQJiOA6y1m1PxDxJY8OCLma7ZJyvomLn7TQBvPtWTYZsibTW7blu7RwThsaQ==
 
-"@luma.gl/core@^9.1.0":
+"@luma.gl/core@^9.1.0", "@luma.gl/core@^9.2.2":
   version "9.2.2"
   resolved "https://registry.yarnpkg.com/@luma.gl/core/-/core-9.2.2.tgz#89d785f1f6b29002a42aae3842f405b3bd24faaa"
   integrity sha512-X63BnXXDlC9AmoG4sUVsfxLn+DoNovbX/z5ZXxnhpxx47536Ss/SLzwnLvm/ZoDhK9/s5qdI95mSZKuqzKCkjw==
@@ -889,6 +931,15 @@
   version "9.1.9"
   resolved "https://registry.yarnpkg.com/@luma.gl/shadertools/-/shadertools-9.1.9.tgz#92c84bc12ea02096532d888730de4d2a53fc890c"
   integrity sha512-Uqp2xfgIEunRMLXTeCJ4uEMlWcUGcYMZGJ8GAOrAeDzn4bMKVRKmZDC71vkuTctnaodM3UdrI9W6s1sJlrXsxw==
+  dependencies:
+    "@math.gl/core" "^4.1.0"
+    "@math.gl/types" "^4.1.0"
+    wgsl_reflect "^1.2.0"
+
+"@luma.gl/shadertools@^9.2.2":
+  version "9.2.2"
+  resolved "https://registry.yarnpkg.com/@luma.gl/shadertools/-/shadertools-9.2.2.tgz#3dafd16e9ca04e901ca2359bcb3bf88f5fb88f6c"
+  integrity sha512-ChskCXE8Q+5/rC8zPR7pHBSfERGRui5qvw6bZnOZMVwTvGbW5tI5od5Wu9ytGi45kWus66M+M/o5LpP3hfc4Hg==
   dependencies:
     "@math.gl/core" "^4.1.0"
     "@math.gl/types" "^4.1.0"
@@ -3744,6 +3795,11 @@ jsep@^0.3.0:
   resolved "https://registry.yarnpkg.com/jsep/-/jsep-0.3.5.tgz#3fd79ebd92f6f434e4857d5272aaeef7d948264d"
   integrity sha512-AoRLBDc6JNnKjNcmonituEABS5bcfqDhQAWWXNTFrqu6nVXBpBAGfcoTGZMFlIrh9FjmE1CQyX9CTNwZrXMMDA==
 
+jsep@^1.4.0:
+  version "1.4.0"
+  resolved "https://registry.yarnpkg.com/jsep/-/jsep-1.4.0.tgz#19feccbfa51d8a79f72480b4b8e40ce2e17152f0"
+  integrity sha512-B7qPcEVE3NVkmSJbaYxvv4cHkVW7DQsZz13pUMrfS8z8Q/BuShN+gcTXrUlPiGqM2/t/EEaI030bpxMqY8gMlw==
+
 json-buffer@3.0.1:
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/json-buffer/-/json-buffer-3.0.1.tgz#9338802a30d3b6605fbe0613e094008ca8c05a13"
@@ -4394,7 +4450,7 @@ punycode@^2.1.0:
   resolved "https://registry.yarnpkg.com/punycode/-/punycode-2.3.1.tgz#027422e2faec0b25e1549c3e1bd8309b9133b6e5"
   integrity sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==
 
-quadbin@^0.4.0:
+quadbin@^0.4.0, quadbin@^0.4.1-alpha.0:
   version "0.4.2"
   resolved "https://registry.yarnpkg.com/quadbin/-/quadbin-0.4.2.tgz#da7a4a2c6e117f9e856f65cacfe5c2529e2f02f5"
   integrity sha512-1NFzjFVM23Um51/ttD6lFDqGtUHNS5Ky1slZHk3YPwMbC+7Jl3ULLb4QvDo6+Nerv8b8SgUV+ysOhziUh4B5cQ==

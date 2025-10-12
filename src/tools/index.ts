@@ -3,6 +3,7 @@ import { zoomToLocation } from './zoomToLocation';
 import { lookupAirport } from './lookupAirport';
 import { drawWktGeometry } from './drawWktGeometry';
 import { getDrawnRegion } from './getDrawnRegion';
+import { addCartoMap } from './addCartoMap';
 import { ToolFunction } from './types';
 
 export const tools: Record<string, ToolFunction> = {
@@ -10,7 +11,8 @@ export const tools: Record<string, ToolFunction> = {
   zoomToLocation,
   lookupAirport,
   drawWktGeometry,
-  getDrawnRegion
+  getDrawnRegion,
+  addCartoMap
 };
 
 export type ToolName = keyof typeof tools;

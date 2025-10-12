@@ -13,6 +13,7 @@
     "@ai-sdk/react": "^2.0.18",
     "@deck.gl-community/editable-layers": "^9.1.1",
     "@deck.gl-community/layers": "^9.1.1",
+    "@deck.gl/carto": "^9.2.1",
     "@deck.gl/core": "^9.1.14",
     "@deck.gl/extensions": "^9.1.14",
     "@deck.gl/geo-layers": "^9.1.14",

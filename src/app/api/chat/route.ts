@@ -120,6 +120,17 @@ export async function POST(req: Request) {
           "Get the WKT geometry of the region that the user has drawn on the map. Use this tool when users ask about the drawn region (e.g., 'what is the area of this region?', 'analyze this region'). Returns the WKT string that can be passed to MCP tools like get_area.",
         inputSchema: z.object({}),
       },
+      addCartoMap: {
+        description:
+          "Add a CARTO map to the visualization by its CARTO URL (supports both viewer and builder URLs). The tool will extract the map ID from the URL and load the map's layers and configuration using the CARTO Maps API.",
+        inputSchema: z.object({
+          mapUrl: z
+            .string()
+            .describe(
+              'CARTO URL with viewer or builder format (e.g. "https://clausa.app.carto.com/viewer/1c43588e-7f6e-4fa8-b529-076d847934f5" or "https://clausa.app.carto.com/builder/1c43588e-7f6e-4fa8-b529-076d847934f5")'
+            ),
+        }),
+      },
     };
 
     // Add only whitelisted MCP tools
@@ -162,6 +173,7 @@ You have access to map control and visualization tools:
 - lookupAirport: Look up detailed information about an airport by its IATA code
 - drawWktGeometry: Draw WKT geometry (POLYGON/MULTIPOLYGON) on the map to visualize shapes and boundaries
 - getDrawnRegion: Get the WKT geometry of the region the user has drawn on the map (for use with MCP tools)
+- addCartoMap: Add a CARTO map to the visualization using a CARTO Builder viewer URL
 
 You also have access to CARTO MCP geospatial workflow tools:
 ${mcpToolDescriptions}

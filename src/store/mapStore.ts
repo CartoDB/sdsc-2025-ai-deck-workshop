@@ -11,16 +11,19 @@ export interface WktGeometry {
 interface MapStore {
   viewState?: MapViewState;
   wktGeometry?: WktGeometry;
+  cartoMapId?: string;
   setViewState: (viewState: MapViewState) => void;
   flyToLocation: (longitude: number, latitude: number, zoom?: number) => void;
   flyToHome: () => void;
   setWktGeometry: (geometry: WktGeometry | undefined) => void;
+  setCartoMapId: (mapId: string | undefined) => void;
 }
 
 export const useMapStore = create<MapStore>((set) => ({
   viewState: undefined,
   //wktGeometry: dummyWkt, // For testing
   wktGeometry: undefined,
+  cartoMapId: undefined,
 
   setViewState: (viewState: MapViewState) => {
     console.log("[MapStore] Setting view state:", viewState);
@@ -46,6 +49,11 @@ export const useMapStore = create<MapStore>((set) => ({
   setWktGeometry: (geometry: WktGeometry | undefined) => {
     console.log("[MapStore] Setting WKT geometry:", geometry);
     set({ wktGeometry: geometry });
+  },
+
+  setCartoMapId: (mapId: string | undefined) => {
+    console.log("[MapStore] Setting CARTO map ID:", mapId);
+    set({ cartoMapId: mapId });
   },
 }));
 

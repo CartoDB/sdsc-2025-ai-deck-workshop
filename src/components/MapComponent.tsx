@@ -6,6 +6,7 @@ import { GeoJsonLayer } from '@deck.gl/layers';
 import { SolidPolygonLayer } from '@deck.gl/layers';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { EditableGeoJsonLayer, DrawPolygonMode } from '@deck.gl-community/editable-layers';
+import { fetchMap } from '@deck.gl/carto';
 import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
 import { parseSync } from '@loaders.gl/core';
@@ -23,8 +24,10 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
   const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
   const [drawnFeatures, setDrawnFeatures] = useState<any>({ type: 'FeatureCollection', features: [] });
+  const [cartoLayers, setCartoLayers] = useState<any[]>([]);
   const viewState = useMapStore((state) => state.viewState);
   const wktGeometry = useMapStore((state) => state.wktGeometry);
+  const cartoMapId = useMapStore((state) => state.cartoMapId);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -117,6 +120,40 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     }
   }, [viewState]);
 
+  // Handle CARTO map loading
+  useEffect(() => {
+    if (!cartoMapId) {
+      setCartoLayers([]);
+      return;
+    }
+
+    console.log('[MapComponent] Fetching CARTO map:', cartoMapId);
+
+    const accessToken = process.env.NEXT_PUBLIC_CARTO_API_TOKEN;
+
+    fetchMap({
+      cartoMapId,
+      ...(accessToken ? { credentials: { accessToken } } : {})
+    })
+      .then((cartoMap) => {
+        console.log('[MapComponent] CARTO map loaded:', cartoMap);
+        setCartoLayers(cartoMap.layers || []);
+
+        // Optionally, update view state to match CARTO map's initial view
+        if (cartoMap.initialViewState && map.current) {
+          map.current.flyTo({
+            center: [cartoMap.initialViewState.longitude, cartoMap.initialViewState.latitude],
+            zoom: cartoMap.initialViewState.zoom,
+            duration: 2000
+          });
+        }
+      })
+      .catch((error) => {
+        console.error('[MapComponent] Error fetching CARTO map:', error);
+        setCartoLayers([]);
+      });
+  }, [cartoMapId]);
+
   // Handle WKT geometry updates
   useEffect(() => {
     if (!overlay.current) return;
@@ -157,6 +194,9 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     });
 
     const layers = [dataLayer];
+
+    // Add CARTO layers
+    layers.push(...cartoLayers);
 
     // Add WKT geometry layer if present
     if (wktGeometry) {
@@ -208,7 +248,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     }
 
     overlay.current.setProps({ layers });
-  }, [wktGeometry, config, onDataLoad, isDrawing, drawnFeatures]);
+  }, [wktGeometry, config, onDataLoad, isDrawing, drawnFeatures, cartoLayers]);
 
   const handleDrawClick = () => {
     if (isDrawing) {
