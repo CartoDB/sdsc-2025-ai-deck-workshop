@@ -7,6 +7,8 @@ import { SolidPolygonLayer } from '@deck.gl/layers';
 import { MapboxOverlay } from '@deck.gl/mapbox';
 import { EditableGeoJsonLayer, DrawPolygonMode } from '@deck.gl-community/editable-layers';
 import { fetchMap } from '@deck.gl/carto';
+import { PostProcessEffect } from '@deck.gl/core';
+import { brightnessContrast } from '@luma.gl/effects';
 import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
 import { parseSync } from '@loaders.gl/core';
@@ -28,6 +30,10 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
   const viewState = useMapStore((state) => state.viewState);
   const wktGeometry = useMapStore((state) => state.wktGeometry);
   const cartoMapId = useMapStore((state) => state.cartoMapId);
+  const postProcessEffect = useMapStore((state) => state.postProcessEffect);
+
+  // Note: Removed global error suppression as it was interfering with CARTO map loading
+  // Individual layers handle their own error suppression via onError callbacks
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -61,7 +67,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     });
 
     overlay.current = new MapboxOverlay({
-      interleaved: true,
+      interleaved: false,
       layers: [
         new GeoJsonLayer({
           id: 'data-layer',
@@ -130,6 +136,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     console.log('[MapComponent] Fetching CARTO map:', cartoMapId);
 
     const accessToken = process.env.NEXT_PUBLIC_CARTO_API_TOKEN;
+    console.log('[MapComponent] Access token available:', !!accessToken);
 
     fetchMap({
       cartoMapId,
@@ -137,10 +144,12 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     })
       .then((cartoMap) => {
         console.log('[MapComponent] CARTO map loaded:', cartoMap);
+        console.log('[MapComponent] CARTO layers count:', cartoMap.layers?.length || 0);
         setCartoLayers(cartoMap.layers || []);
 
         // Optionally, update view state to match CARTO map's initial view
         if (cartoMap.initialViewState && map.current) {
+          console.log('[MapComponent] Flying to CARTO map initial view:', cartoMap.initialViewState);
           map.current.flyTo({
             center: [cartoMap.initialViewState.longitude, cartoMap.initialViewState.latitude],
             zoom: cartoMap.initialViewState.zoom,
@@ -149,7 +158,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
         }
       })
       .catch((error) => {
-        console.error('[MapComponent] Error fetching CARTO map:', error);
+        console.error('[MapComponent] Error loading CARTO map:', error);
         setCartoLayers([]);
       });
   }, [cartoMapId]);
@@ -196,7 +205,14 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     const layers = [dataLayer];
 
     // Add CARTO layers
-    layers.push(...cartoLayers);
+    console.log('[MapComponent] Adding CARTO layers, count:', cartoLayers.length);
+    if (cartoLayers.length > 0) {
+      cartoLayers.forEach((layer, idx) => {
+        console.log(`[MapComponent] Adding CARTO layer ${idx}:`, layer.id || 'no-id', layer);
+      });
+      layers.push(...cartoLayers);
+      console.log('[MapComponent] Total layers after adding CARTO:', layers.length);
+    }
 
     // Add WKT geometry layer if present
     if (wktGeometry) {
@@ -247,8 +263,19 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       layers.push(editableLayer);
     }
 
-    overlay.current.setProps({ layers });
-  }, [wktGeometry, config, onDataLoad, isDrawing, drawnFeatures, cartoLayers]);
+    // Create post-process effects if configured
+    const effects = [];
+    if (postProcessEffect) {
+      effects.push(
+        new PostProcessEffect(brightnessContrast, {
+          brightness: postProcessEffect.brightness,
+          contrast: postProcessEffect.contrast,
+        })
+      );
+    }
+
+    overlay.current.setProps({ layers, effects });
+  }, [wktGeometry, config, onDataLoad, isDrawing, drawnFeatures, cartoLayers, postProcessEffect]);
 
   const handleDrawClick = () => {
     if (isDrawing) {

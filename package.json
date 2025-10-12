@@ -25,6 +25,7 @@
     "@loaders.gl/wkt": "^4.3.4",
     "@luma.gl/constants": "9.1.9",
     "@luma.gl/core": "9.1.9",
+    "@luma.gl/effects": "9.1.9",
     "@luma.gl/engine": "9.1.9",
     "@luma.gl/shadertools": "9.1.9",
     "@math.gl/core": "^4.1.0",
