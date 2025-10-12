@@ -9,8 +9,12 @@ export interface WktGeometry {
 }
 
 export interface PostProcessEffectParams {
-  brightness: number;
-  contrast: number;
+  brightness?: number;
+  contrast?: number;
+  sepia?: number;
+  vignette?: { size?: number; amount?: number };
+  ink?: number;
+  noise?: number;
 }
 
 interface MapStore {

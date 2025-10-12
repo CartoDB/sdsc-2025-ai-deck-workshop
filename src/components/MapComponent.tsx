@@ -8,7 +8,7 @@ import { MapboxOverlay } from '@deck.gl/mapbox';
 import { EditableGeoJsonLayer, DrawPolygonMode } from '@deck.gl-community/editable-layers';
 import { fetchMap } from '@deck.gl/carto';
 import { PostProcessEffect } from '@deck.gl/core';
-import { brightnessContrast } from '@luma.gl/effects';
+import { brightnessContrast, noise, sepia, vignette, ink } from '@luma.gl/effects';
 import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
 import { parseSync } from '@loaders.gl/core';
@@ -32,8 +32,26 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
   const cartoMapId = useMapStore((state) => state.cartoMapId);
   const postProcessEffect = useMapStore((state) => state.postProcessEffect);
 
-  // Note: Removed global error suppression as it was interfering with CARTO map loading
-  // Individual layers handle their own error suppression via onError callbacks
+  // Suppress CARTO-related console errors globally
+  useEffect(() => {
+    const originalError = console.error;
+    console.error = (...args: any[]) => {
+      // Filter out CARTO 429 errors and other expected fetch failures
+      const errorStr = args[0]?.toString?.() || '';
+      if (
+        errorStr.includes('Failed to fetch resource') ||
+        errorStr.includes('api.carto.com') ||
+        errorStr.includes('429')
+      ) {
+        return;
+      }
+      originalError.apply(console, args);
+    };
+
+    return () => {
+      console.error = originalError;
+    };
+  }, []);
 
   useEffect(() => {
     if (map.current || !mapContainer.current) return;
@@ -266,12 +284,52 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     // Create post-process effects if configured
     const effects = [];
     if (postProcessEffect) {
-      effects.push(
-        new PostProcessEffect(brightnessContrast, {
-          brightness: postProcessEffect.brightness,
-          contrast: postProcessEffect.contrast,
-        })
-      );
+      // Brightness and contrast
+      if (postProcessEffect.brightness !== undefined || postProcessEffect.contrast !== undefined) {
+        effects.push(
+          new PostProcessEffect(brightnessContrast, {
+            brightness: postProcessEffect.brightness ?? 0,
+            contrast: postProcessEffect.contrast ?? 0,
+          })
+        );
+      }
+
+      // Sepia
+      if (postProcessEffect.sepia !== undefined) {
+        effects.push(
+          new PostProcessEffect(sepia, {
+            amount: postProcessEffect.sepia,
+          })
+        );
+      }
+
+      // Vignette
+      if (postProcessEffect.vignette) {
+        effects.push(
+          new PostProcessEffect(vignette, {
+            size: postProcessEffect.vignette.size ?? 0.5,
+            amount: postProcessEffect.vignette.amount ?? 0.5,
+          })
+        );
+      }
+
+      // Ink
+      if (postProcessEffect.ink !== undefined) {
+        effects.push(
+          new PostProcessEffect(ink, {
+            strength: postProcessEffect.ink,
+          })
+        );
+      }
+
+      // Noise
+      if (postProcessEffect.noise !== undefined) {
+        effects.push(
+          new PostProcessEffect(noise, {
+            amount: postProcessEffect.noise,
+          })
+        );
+      }
     }
 
     overlay.current.setProps({ layers, effects });

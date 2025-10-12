@@ -133,7 +133,7 @@ export async function POST(req: Request) {
       },
       applyPostProcessEffect: {
         description:
-          "Apply post-process visual effects to the map visualization including brightness and contrast adjustments. Use this to enhance the visual appearance of the map or adjust it for better readability.",
+          "Apply post-process visual effects to the map visualization including brightness, contrast, sepia, vignette, ink, and noise. Use this to enhance the visual appearance or create artistic effects.",
         inputSchema: z.object({
           brightness: z
             .number()
@@ -146,6 +146,36 @@ export async function POST(req: Request) {
             .optional()
             .describe(
               "Contrast adjustment (-1 to 1, default: 0). -1 is solid gray, 0 is no change, 1 is maximum contrast"
+            ),
+          sepia: z
+            .number()
+            .optional()
+            .describe(
+              "Sepia tone effect (0 to 1, default: 0.5). 0 is no effect, 1 is full sepia"
+            ),
+          vignetteSize: z
+            .number()
+            .optional()
+            .describe(
+              "Vignette size (0 to 1, default: 0.5). Controls the size of the vignette effect"
+            ),
+          vignetteAmount: z
+            .number()
+            .optional()
+            .describe(
+              "Vignette intensity (0 to 1, default: 0.5). Controls how dark the vignette is"
+            ),
+          ink: z
+            .number()
+            .optional()
+            .describe(
+              "Ink effect strength (0 to 1, default: 0.25). Creates an ink drawing effect"
+            ),
+          noise: z
+            .number()
+            .optional()
+            .describe(
+              "Noise amount (0 to 1, default: 0.5). Adds film grain or noise to the image"
             ),
         }),
       },
@@ -192,7 +222,7 @@ You have access to map control and visualization tools:
 - drawWktGeometry: Draw WKT geometry (POLYGON/MULTIPOLYGON) on the map to visualize shapes and boundaries
 - getDrawnRegion: Get the WKT geometry of the region the user has drawn on the map (for use with MCP tools)
 - addCartoMap: Add a CARTO map to the visualization using a CARTO Builder viewer URL
-- applyPostProcessEffect: Apply visual effects like brightness and contrast adjustments to the map
+- applyPostProcessEffect: Apply visual effects like brightness, contrast, sepia, vignette, ink, and noise to the map
 
 You also have access to CARTO MCP geospatial workflow tools:
 ${mcpToolDescriptions}
