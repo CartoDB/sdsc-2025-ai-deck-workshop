@@ -9,13 +9,14 @@ export const addCartoMap: ToolFunction = (toolCall: ToolCall): string => {
   };
 
   // Extract map ID from CARTO URL
-  // Supports both formats:
+  // Supports multiple formats:
   // - https://[domain].app.carto.com/viewer/{mapId}
   // - https://[domain].app.carto.com/builder/{mapId}
-  const mapIdMatch = mapUrl.match(/\/(viewer|builder)\/([a-f0-9-]+)/i);
+  // - https://[domain].app.carto.com/map/{mapId}
+  const mapIdMatch = mapUrl.match(/\/(viewer|builder|map)\/([a-f0-9-]+)/i);
 
   if (!mapIdMatch || !mapIdMatch[2]) {
-    return `Failed to extract map ID from URL: ${mapUrl}. Expected format: https://[domain].app.carto.com/viewer/[map-id] or https://[domain].app.carto.com/builder/[map-id]`;
+    return `Failed to extract map ID from URL: ${mapUrl}. Expected format: https://[domain].app.carto.com/[viewer|builder|map]/[map-id]`;
   }
 
   const mapId = mapIdMatch[2];

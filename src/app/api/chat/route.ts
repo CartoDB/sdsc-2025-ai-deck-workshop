@@ -122,12 +122,12 @@ export async function POST(req: Request) {
       },
       addCartoMap: {
         description:
-          "Add a CARTO map to the visualization by its CARTO URL (supports both viewer and builder URLs). The tool will extract the map ID from the URL and load the map's layers and configuration using the CARTO Maps API.",
+          "Add a CARTO map to the visualization by its CARTO URL (supports viewer, builder, and map URLs). The tool will extract the map ID from the URL and load the map's layers and configuration using the CARTO Maps API.",
         inputSchema: z.object({
           mapUrl: z
             .string()
             .describe(
-              'CARTO URL with viewer or builder format (e.g. "https://clausa.app.carto.com/viewer/1c43588e-7f6e-4fa8-b529-076d847934f5" or "https://clausa.app.carto.com/builder/1c43588e-7f6e-4fa8-b529-076d847934f5")'
+              'CARTO URL (e.g. "https://clausa.app.carto.com/map/2d350d98-26b5-4827-a3dd-d62cdaff5ee0" or "https://clausa.app.carto.com/viewer/..." or "https://clausa.app.carto.com/builder/...")'
             ),
         }),
       },
