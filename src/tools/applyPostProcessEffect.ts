@@ -11,7 +11,8 @@ export const applyPostProcessEffect: ToolFunction = (toolCall: ToolCall): string
     vignetteSize,
     vignetteAmount,
     ink,
-    noise
+    noise,
+    reset
   } = toolCall.input as {
     brightness?: number;
     contrast?: number;
@@ -20,6 +21,7 @@ export const applyPostProcessEffect: ToolFunction = (toolCall: ToolCall): string
     vignetteAmount?: number;
     ink?: number;
     noise?: number;
+    reset?: boolean;
   };
 
   // Validate input ranges
@@ -51,23 +53,62 @@ export const applyPostProcessEffect: ToolFunction = (toolCall: ToolCall): string
     return `Invalid noise value: ${noise}. Must be between 0 and 1 (default: 0.5)`;
   }
 
-  // Build effect parameters
-  const effectParams: any = {};
+  // If reset is true, clear all existing effects first
+  const existingEffects = reset ? {} : (useMapStore.getState().postProcessEffect || {});
 
-  if (brightness !== undefined) effectParams.brightness = brightness;
-  if (contrast !== undefined) effectParams.contrast = contrast;
-  if (sepia !== undefined) effectParams.sepia = sepia;
+  const effectParams: any = { ...existingEffects };
+
+  // Set or remove effects based on values
+  // Use null to explicitly remove an effect
+  if (brightness !== undefined) {
+    if (brightness === 0) {
+      delete effectParams.brightness;
+    } else {
+      effectParams.brightness = brightness;
+    }
+  }
+  if (contrast !== undefined) {
+    if (contrast === 0) {
+      delete effectParams.contrast;
+    } else {
+      effectParams.contrast = contrast;
+    }
+  }
+  if (sepia !== undefined) {
+    if (sepia === 0) {
+      delete effectParams.sepia;
+    } else {
+      effectParams.sepia = sepia;
+    }
+  }
   if (vignetteSize !== undefined || vignetteAmount !== undefined) {
     effectParams.vignette = {
+      ...(existingEffects.vignette || {}),
       ...(vignetteSize !== undefined && { size: vignetteSize }),
       ...(vignetteAmount !== undefined && { amount: vignetteAmount })
     };
+    // Remove vignette if both are 0
+    if (effectParams.vignette.size === 0 && effectParams.vignette.amount === 0) {
+      delete effectParams.vignette;
+    }
   }
-  if (ink !== undefined) effectParams.ink = ink;
-  if (noise !== undefined) effectParams.noise = noise;
+  if (ink !== undefined) {
+    if (ink === 0) {
+      delete effectParams.ink;
+    } else {
+      effectParams.ink = ink;
+    }
+  }
+  if (noise !== undefined) {
+    if (noise === 0) {
+      delete effectParams.noise;
+    } else {
+      effectParams.noise = noise;
+    }
+  }
 
   // Use Zustand store to set the post-process effect parameters
-  useMapStore.getState().setPostProcessEffect(effectParams);
+  useMapStore.getState().setPostProcessEffect(Object.keys(effectParams).length > 0 ? effectParams : undefined);
 
   const effects: string[] = [];
   if (brightness !== undefined) effects.push(`brightness: ${brightness}`);

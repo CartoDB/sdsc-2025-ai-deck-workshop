@@ -133,49 +133,55 @@ export async function POST(req: Request) {
       },
       applyPostProcessEffect: {
         description:
-          "Apply post-process visual effects to the map visualization including brightness, contrast, sepia, vignette, ink, and noise. Use this to enhance the visual appearance or create artistic effects.",
+          "Apply post-process visual effects to the map visualization including brightness, contrast, sepia, vignette, ink, and noise. Effects are additive - they merge with existing effects. To remove an effect, set it to 0. Use reset: true to clear all effects first.",
         inputSchema: z.object({
           brightness: z
             .number()
             .optional()
             .describe(
-              "Brightness adjustment (-1 to 1, default: 0). -1 is solid black, 0 is no change, 1 is solid white"
+              "Brightness adjustment (-1 to 1). Set to 0 to remove brightness effect"
             ),
           contrast: z
             .number()
             .optional()
             .describe(
-              "Contrast adjustment (-1 to 1, default: 0). -1 is solid gray, 0 is no change, 1 is maximum contrast"
+              "Contrast adjustment (-1 to 1). Set to 0 to remove contrast effect"
             ),
           sepia: z
             .number()
             .optional()
             .describe(
-              "Sepia tone effect (0 to 1, default: 0.5). 0 is no effect, 1 is full sepia"
+              "Sepia tone effect (0 to 1). Set to 0 to remove sepia"
             ),
           vignetteSize: z
             .number()
             .optional()
             .describe(
-              "Vignette size (0 to 1, default: 0.5). Controls the size of the vignette effect"
+              "Vignette size (0 to 1). Set to 0 to remove vignette"
             ),
           vignetteAmount: z
             .number()
             .optional()
             .describe(
-              "Vignette intensity (0 to 1, default: 0.5). Controls how dark the vignette is"
+              "Vignette intensity (0 to 1). Set to 0 to remove vignette"
             ),
           ink: z
             .number()
             .optional()
             .describe(
-              "Ink effect strength (0 to 1, default: 0.25). Creates an ink drawing effect"
+              "Ink effect strength (0 to 1). Set to 0 to remove ink effect"
             ),
           noise: z
             .number()
             .optional()
             .describe(
-              "Noise amount (0 to 1, default: 0.5). Adds film grain or noise to the image"
+              "Noise amount (0 to 1). Set to 0 to remove noise"
+            ),
+          reset: z
+            .boolean()
+            .optional()
+            .describe(
+              "Set to true to clear all existing effects before applying new ones"
             ),
         }),
       },
