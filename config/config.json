@@ -17,7 +17,7 @@
       "fields": [
         {"key": "name", "label": "Name"},
         {"key": "type", "label": "Type"},
-        {"key": "sov_a3", "label": "Country"}
+        {"key": "iata_code", "label": "IATA Code"}
       ]
     },
     "stats": {
