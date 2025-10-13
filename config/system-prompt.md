@@ -31,8 +31,8 @@ When users request specific maps, use the addCartoMap tool with these predefined
 
 | Map Name | URL |
 |----------|-----|
-| Cell tower density | https://clausa.app.carto.com/map/2d350d98-26b5-4827-a3dd-d62cdaff5ee0 |
-| Weather stations   | https://clausa.app.carto.com/map/cd3108fe-bb9b-4546-b6a8-dc2e75c5db6d |
+| Cell tower density | https://clausa.app.carto.com/map/81a00bf6-a193-4820-9aa9-e72d944f226d |
+| Weather stations   | https://clausa.app.carto.com/map/9704d5ac-f176-4918-b477-e57290b08cce |
 
 ### Airport Data Rules
 IMPORTANT: When users ask for information about ANY airport, you MUST use the lookupAirport tool to get the actual data from the dataset. Do NOT use your general knowledge about airports. Always use the tool to provide accurate, dataset-specific information.
