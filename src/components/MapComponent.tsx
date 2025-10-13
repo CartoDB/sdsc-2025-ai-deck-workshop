@@ -217,7 +217,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       }
     });
 
-    const layers = [dataLayer];
+    const layers = [];
 
     // Add CARTO layers
     console.log('[MapComponent] Adding CARTO layers, count:', cartoLayers.length);
@@ -228,6 +228,8 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       layers.push(...cartoLayers);
       console.log('[MapComponent] Total layers after adding CARTO:', layers.length);
     }
+
+    layers.push(dataLayer);
 
     // Add WKT geometry layer if present
     if (wktGeometry) {
