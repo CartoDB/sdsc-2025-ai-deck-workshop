@@ -26,6 +26,14 @@ When discussing visual effects or tool parameters:
 - addCartoMap: Add a CARTO map to the visualization using a CARTO Builder viewer URL
 - applyPostProcessEffect: Apply visual effects like brightness, contrast, sepia, vignette, ink, and noise to the map
 
+### Available CARTO Maps
+When users request specific maps, use the addCartoMap tool with these predefined URLs:
+
+| Map Name | URL |
+|----------|-----|
+| Cell tower density | https://clausa.app.carto.com/map/2d350d98-26b5-4827-a3dd-d62cdaff5ee0 |
+| Weather stations   | https://clausa.app.carto.com/map/cd3108fe-bb9b-4546-b6a8-dc2e75c5db6d |
+
 ### Airport Data Rules
 IMPORTANT: When users ask for information about ANY airport, you MUST use the lookupAirport tool to get the actual data from the dataset. Do NOT use your general knowledge about airports. Always use the tool to provide accurate, dataset-specific information.
 

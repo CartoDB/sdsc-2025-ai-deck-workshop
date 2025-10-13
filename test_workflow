@@ -32,6 +32,7 @@ try {
 const MCP_SERVER_URL = process.env.CARTO_MCP_SERVER_URL;
 const API_TOKEN = process.env.CARTO_API_TOKEN;
 const WORKFLOW_ID = "54901000-61d3-49f6-a9ae-ec6a38a220f4";
+const TOOLNAME = "demo_tool";
 
 if (!MCP_SERVER_URL || !API_TOKEN) {
   console.error(
@@ -182,14 +183,9 @@ async function callWorkflow(toolName) {
 }
 
 async function main() {
-  const toolName = await listTools();
+  await listTools();
 
-  if (!toolName) {
-    console.error("\n❌ Could not find any MCP tools. Exiting.");
-    process.exit(1);
-  }
-
-  const success = await callWorkflow(toolName);
+  const success = await callWorkflow(TOOLNAME);
 
   console.log("\n" + "=".repeat(60));
   if (success) {
