@@ -115,11 +115,6 @@ export async function POST(req: Request) {
             ),
         }),
       },
-      getDrawnRegion: {
-        description:
-          "Get the WKT geometry of the region that the user has drawn on the map. Use this tool when users ask about the drawn region (e.g., 'what is the area of this region?', 'analyze this region'). Returns the WKT string that can be passed to MCP tools like get_area.",
-        inputSchema: z.object({}),
-      },
       addCartoMap: {
         description:
           "Add a CARTO map to the visualization by its CARTO URL (supports viewer, builder, and map URLs). The tool will extract the map ID from the URL and load the map's layers and configuration using the CARTO Maps API.",

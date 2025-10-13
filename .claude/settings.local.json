@@ -27,7 +27,9 @@
       "Bash(chmod:*)",
       "Bash(./list_carto_tools)",
       "Bash(./test_workflow)",
-      "WebFetch(domain:deck.gl)"
+      "WebFetch(domain:deck.gl)",
+      "Bash(curl:*)",
+      "WebFetch(domain:luma.gl)"
     ],
     "deny": [],
     "ask": []
