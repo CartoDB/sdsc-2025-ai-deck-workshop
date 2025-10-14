@@ -29,7 +29,8 @@
       "Bash(./test_workflow)",
       "WebFetch(domain:deck.gl)",
       "Bash(curl:*)",
-      "WebFetch(domain:luma.gl)"
+      "WebFetch(domain:luma.gl)",
+      "Bash(python3:*)"
     ],
     "deny": [],
     "ask": []

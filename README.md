@@ -25,8 +25,8 @@ An interactive map application demonstrating Claude AI integration with spatial 
    ```
 
 - To get Anthopic (paid) key, visit: https://console.anthropic.com/settings/keys
-- CARTO MCP Server URL available in MCP tool setup in Workflows (e.g. https://gcp-us-east1.api.carto.com/mcp/ac_8l15x5rr)
-- CARTO API token configurable in https://clausa.app.carto.com/developers/credentials (enable "MCP Server checkbox"
+- CARTO MCP Server URL available in [Workflow API & MCP Server](https://clausa.app.carto.com/developers/workflows) (e.g. https://gcp-us-east1.api.carto.com/mcp/ac_8l15x5rr)
+- CARTO API token configurable in [Credentials](https://clausa.app.carto.com/developers/credentials) (enable "MCP Server checkbox"
 
 
 3. Run the development server:
