@@ -78,7 +78,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
         ]
       },
       center: [0, 20],
-      zoom: 2
+      zoom: 0
     });
 
     overlay.current = new MapboxOverlay({

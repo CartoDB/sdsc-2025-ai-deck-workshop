@@ -4,7 +4,7 @@
     "type": "geojson"
   },
   "displaySettings": {
-    "title": "Airport Data Assistant",
+    "title": "✈️ Airport Data Assistant",
     "description": "Features:",
     "layer": {
       "fillColor": [255, 140, 0, 180],
@@ -28,7 +28,6 @@
     "Zoom to a location on map, e.g. 'take me to New York'",
     "Look up information from dataset, e.g. 'tell me about JFK airport'",
     "Add a CARTO map, e.g. 'show me a cell tower density map'",
-    "Draw WKT geometry, e.g. 'draw a polygon around Spain'",
     "Apply visual effects, e.g. 'apply sepia effect to the map'"
   ]
 } 

@@ -113,23 +113,10 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
     };
   }, []);
 
-  const dataStats = useMemo(() => {
-    if (!data?.features) return '';
-    
-    const totalFeatures = data.features.length;
-    const stats: string[] = [`Currently viewing ${totalFeatures} features`];
-    return stats;
-  }, [data, config]);
-
   return (
     <div className="flex flex-col h-full bg-white border-l border-gray-300">
       <div className="p-4 border-b border-gray-200 bg-gray-50">
         <h2 className="text-lg font-semibold text-gray-800">{config.displaySettings.title}</h2>
-        {data && (
-          <p className="text-sm text-gray-600 mt-1">
-            {dataStats}
-          </p>
-        )}
       </div>
       
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
@@ -191,7 +178,7 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
           <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
-            placeholder={`Ask about the ${config.displaySettings.title.toLowerCase()}...`}
+            placeholder={`Ask about airports...`}
             className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
             disabled={status !== 'ready'}
           />
