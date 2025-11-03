@@ -1,5 +1,61 @@
 import { useMapStore } from '@/store/mapStore';
 import { ToolFunction, ToolCall } from './types';
+import { z } from 'zod';
+
+export const applyPostProcessEffectSchema = {
+  description:
+    "Apply post-process visual effects to the map visualization including brightness, contrast, sepia, vignette, ink, and noise. Effects are additive - they merge with existing effects. To remove an effect, set it to 0. Use reset: true to clear all effects first.",
+  inputSchema: z.object({
+    brightness: z
+      .number()
+      .optional()
+      .describe(
+        "Brightness adjustment (-1 to 1). Set to 0 to remove brightness effect"
+      ),
+    contrast: z
+      .number()
+      .optional()
+      .describe(
+        "Contrast adjustment (-1 to 1). Set to 0 to remove contrast effect"
+      ),
+    sepia: z
+      .number()
+      .optional()
+      .describe(
+        "Sepia tone effect (0 to 1). Set to 0 to remove sepia"
+      ),
+    vignetteSize: z
+      .number()
+      .optional()
+      .describe(
+        "Vignette size (0 to 1). Set to 0 to remove vignette"
+      ),
+    vignetteAmount: z
+      .number()
+      .optional()
+      .describe(
+        "Vignette intensity (0 to 1). Set to 0 to remove vignette"
+      ),
+    ink: z
+      .number()
+      .optional()
+      .describe(
+        "Ink effect strength (0 to 1). Set to 0 to remove ink effect"
+      ),
+    noise: z
+      .number()
+      .optional()
+      .describe(
+        "Noise amount (0 to 1). Set to 0 to remove noise"
+      ),
+    reset: z
+      .boolean()
+      .optional()
+      .describe(
+        "Set to true to clear all existing effects before applying new ones"
+      ),
+  }),
+};
 
 export const applyPostProcessEffect: ToolFunction = (toolCall: ToolCall): string => {
   console.log('[applyPostProcessEffect] Executing tool client-side');

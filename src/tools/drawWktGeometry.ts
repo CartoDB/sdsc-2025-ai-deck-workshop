@@ -1,5 +1,28 @@
 import { useMapStore } from '@/store/mapStore';
 import { ToolFunction, ToolCall } from './types';
+import { z } from 'zod';
+
+export const drawWktGeometrySchema = {
+  description:
+    "Draw a WKT (Well-Known Text) geometry on the map using deck.gl SolidPolygonLayer. Supports POLYGON and MULTIPOLYGON formats. Use this to visualize geometric shapes like buffers, boundaries, or analysis results.",
+  inputSchema: z.object({
+    wkt: z
+      .string()
+      .describe(
+        'WKT geometry string (e.g. "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")'
+      ),
+    name: z
+      .string()
+      .optional()
+      .describe("Optional name for the geometry"),
+    color: z
+      .array(z.number())
+      .optional()
+      .describe(
+        "Optional RGBA color array [r, g, b, a] where values are 0-255 for RGB and 0-255 for alpha"
+      ),
+  }),
+};
 
 export const drawWktGeometry: ToolFunction = (toolCall: ToolCall): string => {
   console.log('[drawWktGeometry] Executing tool client-side');

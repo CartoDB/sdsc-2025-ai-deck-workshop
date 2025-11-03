@@ -4,6 +4,7 @@ import { loadConfig } from "@/lib/config";
 import { logToFile } from "@/lib/logger";
 import { listMCPTools } from "@/lib/mcpClient";
 import { mcpToolConfig } from "@/config/mcpTools";
+import { localToolSchemas } from "@/tools";
 import { z } from "zod";
 
 export const maxDuration = 30;
@@ -65,122 +66,7 @@ export async function POST(req: Request) {
     });
 
     // Build tools object with both local and MCP tools
-    const tools: Record<string, any> = {
-      zoomToHome: {
-        description: "Zoom the map to London (home location)",
-        inputSchema: z.object({}),
-      },
-      zoomToLocation: {
-        description: "Zoom the map to a specific location by coordinates",
-        inputSchema: z.object({
-          longitude: z
-            .number()
-            .describe("Longitude coordinate of the location"),
-          latitude: z.number().describe("Latitude coordinate of the location"),
-          locationName: z
-            .string()
-            .describe("Name of the location for user feedback"),
-          zoom: z.number().optional().describe("Zoom level (default: 10)"),
-        }),
-      },
-      lookupAirport: {
-        description:
-          "Look up detailed information about an airport by its IATA code from the loaded dataset. Use this tool whenever users ask for information about any airport.",
-        inputSchema: z.object({
-          iataCode: z
-            .string()
-            .describe(
-              '3-letter IATA airport code (e.g. "MAD" for Madrid, "LAX" for Los Angeles)'
-            ),
-        }),
-      },
-      drawWktGeometry: {
-        description:
-          "Draw a WKT (Well-Known Text) geometry on the map using deck.gl SolidPolygonLayer. Supports POLYGON and MULTIPOLYGON formats. Use this to visualize geometric shapes like buffers, boundaries, or analysis results.",
-        inputSchema: z.object({
-          wkt: z
-            .string()
-            .describe(
-              'WKT geometry string (e.g. "POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))")'
-            ),
-          name: z
-            .string()
-            .optional()
-            .describe("Optional name for the geometry"),
-          color: z
-            .array(z.number())
-            .optional()
-            .describe(
-              "Optional RGBA color array [r, g, b, a] where values are 0-255 for RGB and 0-255 for alpha"
-            ),
-        }),
-      },
-      addCartoMap: {
-        description:
-          "Add a CARTO map to the visualization by its CARTO URL (supports viewer, builder, and map URLs). The tool will extract the map ID from the URL and load the map's layers and configuration using the CARTO Maps API.",
-        inputSchema: z.object({
-          mapUrl: z
-            .string()
-            .describe(
-              'CARTO URL (e.g. "https://clausa.app.carto.com/map/2d350d98-26b5-4827-a3dd-d62cdaff5ee0" or "https://clausa.app.carto.com/viewer/..." or "https://clausa.app.carto.com/builder/...")'
-            ),
-        }),
-      },
-      applyPostProcessEffect: {
-        description:
-          "Apply post-process visual effects to the map visualization including brightness, contrast, sepia, vignette, ink, and noise. Effects are additive - they merge with existing effects. To remove an effect, set it to 0. Use reset: true to clear all effects first.",
-        inputSchema: z.object({
-          brightness: z
-            .number()
-            .optional()
-            .describe(
-              "Brightness adjustment (-1 to 1). Set to 0 to remove brightness effect"
-            ),
-          contrast: z
-            .number()
-            .optional()
-            .describe(
-              "Contrast adjustment (-1 to 1). Set to 0 to remove contrast effect"
-            ),
-          sepia: z
-            .number()
-            .optional()
-            .describe(
-              "Sepia tone effect (0 to 1). Set to 0 to remove sepia"
-            ),
-          vignetteSize: z
-            .number()
-            .optional()
-            .describe(
-              "Vignette size (0 to 1). Set to 0 to remove vignette"
-            ),
-          vignetteAmount: z
-            .number()
-            .optional()
-            .describe(
-              "Vignette intensity (0 to 1). Set to 0 to remove vignette"
-            ),
-          ink: z
-            .number()
-            .optional()
-            .describe(
-              "Ink effect strength (0 to 1). Set to 0 to remove ink effect"
-            ),
-          noise: z
-            .number()
-            .optional()
-            .describe(
-              "Noise amount (0 to 1). Set to 0 to remove noise"
-            ),
-          reset: z
-            .boolean()
-            .optional()
-            .describe(
-              "Set to true to clear all existing effects before applying new ones"
-            ),
-        }),
-      },
-    };
+    const tools: Record<string, any> = { ...localToolSchemas };
 
     // Add only whitelisted MCP tools
     const whitelistedMcpTools = mcpTools.filter((tool) =>

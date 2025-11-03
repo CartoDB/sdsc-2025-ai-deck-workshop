@@ -1,4 +1,17 @@
 import { ToolFunction, ToolCall } from './types';
+import { z } from 'zod';
+
+export const lookupAirportSchema = {
+  description:
+    "Look up detailed information about an airport by its IATA code from the loaded dataset. Use this tool whenever users ask for information about any airport.",
+  inputSchema: z.object({
+    iataCode: z
+      .string()
+      .describe(
+        '3-letter IATA airport code (e.g. "MAD" for Madrid, "LAX" for Los Angeles)'
+      ),
+  }),
+};
 
 // Get data from the global window object where MapComponent stores it
 declare global {

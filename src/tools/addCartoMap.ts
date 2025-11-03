@@ -1,5 +1,18 @@
 import { useMapStore } from '@/store/mapStore';
 import { ToolFunction, ToolCall } from './types';
+import { z } from 'zod';
+
+export const addCartoMapSchema = {
+  description:
+    "Add a CARTO map to the visualization by its CARTO URL (supports viewer, builder, and map URLs). The tool will extract the map ID from the URL and load the map's layers and configuration using the CARTO Maps API.",
+  inputSchema: z.object({
+    mapUrl: z
+      .string()
+      .describe(
+        'CARTO URL (e.g. "https://clausa.app.carto.com/map/2d350d98-26b5-4827-a3dd-d62cdaff5ee0" or "https://clausa.app.carto.com/viewer/..." or "https://clausa.app.carto.com/builder/...")'
+      ),
+  }),
+};
 
 export const addCartoMap: ToolFunction = (toolCall: ToolCall): string => {
   console.log('[addCartoMap] Executing tool client-side');
