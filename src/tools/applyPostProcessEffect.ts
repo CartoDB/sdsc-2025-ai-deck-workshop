@@ -8,42 +8,56 @@ export const applyPostProcessEffectSchema = {
   inputSchema: z.object({
     brightness: z
       .number()
+      .gte(-1)
+      .lte(1)
       .optional()
       .describe(
         "Brightness adjustment (-1 to 1). Set to 0 to remove brightness effect"
       ),
     contrast: z
       .number()
+      .gte(-1)
+      .lte(1)
       .optional()
       .describe(
         "Contrast adjustment (-1 to 1). Set to 0 to remove contrast effect"
       ),
     sepia: z
       .number()
+      .nonnegative()
+      .lte(1)
       .optional()
       .describe(
         "Sepia tone effect (0 to 1). Set to 0 to remove sepia"
       ),
     vignetteSize: z
       .number()
+      .nonnegative()
+      .lte(1)
       .optional()
       .describe(
         "Vignette size (0 to 1). Set to 0 to remove vignette"
       ),
     vignetteAmount: z
       .number()
+      .nonnegative()
+      .lte(1)
       .optional()
       .describe(
         "Vignette intensity (0 to 1). Set to 0 to remove vignette"
       ),
     ink: z
       .number()
+      .nonnegative()
+      .lte(1)
       .optional()
       .describe(
         "Ink effect strength (0 to 1). Set to 0 to remove ink effect"
       ),
     noise: z
       .number()
+      .nonnegative()
+      .lte(1)
       .optional()
       .describe(
         "Noise amount (0 to 1). Set to 0 to remove noise"
@@ -59,7 +73,6 @@ export const applyPostProcessEffectSchema = {
 
 export const applyPostProcessEffect: ToolFunction = (toolCall: ToolCall): string => {
   console.log('[applyPostProcessEffect] Executing tool client-side');
-
   const {
     brightness,
     contrast,
@@ -69,45 +82,7 @@ export const applyPostProcessEffect: ToolFunction = (toolCall: ToolCall): string
     ink,
     noise,
     reset
-  } = toolCall.input as {
-    brightness?: number;
-    contrast?: number;
-    sepia?: number;
-    vignetteSize?: number;
-    vignetteAmount?: number;
-    ink?: number;
-    noise?: number;
-    reset?: boolean;
-  };
-
-  // Validate input ranges
-  if (brightness !== undefined && (brightness < -1 || brightness > 1)) {
-    return `Invalid brightness value: ${brightness}. Must be between -1 and 1 (default: 0)`;
-  }
-
-  if (contrast !== undefined && (contrast < -1 || contrast > 1)) {
-    return `Invalid contrast value: ${contrast}. Must be between -1 and 1 (default: 0)`;
-  }
-
-  if (sepia !== undefined && (sepia < 0 || sepia > 1)) {
-    return `Invalid sepia value: ${sepia}. Must be between 0 and 1 (default: 0.5)`;
-  }
-
-  if (vignetteSize !== undefined && (vignetteSize < 0 || vignetteSize > 1)) {
-    return `Invalid vignette size: ${vignetteSize}. Must be between 0 and 1 (default: 0.5)`;
-  }
-
-  if (vignetteAmount !== undefined && (vignetteAmount < 0 || vignetteAmount > 1)) {
-    return `Invalid vignette amount: ${vignetteAmount}. Must be between 0 and 1 (default: 0.5)`;
-  }
-
-  if (ink !== undefined && (ink < 0 || ink > 1)) {
-    return `Invalid ink value: ${ink}. Must be between 0 and 1 (default: 0.25)`;
-  }
-
-  if (noise !== undefined && (noise < 0 || noise > 1)) {
-    return `Invalid noise value: ${noise}. Must be between 0 and 1 (default: 0.5)`;
-  }
+  } = applyPostProcessEffectSchema.inputSchema.parse(toolCall.input);
 
   // If reset is true, clear all existing effects first
   const existingEffects = reset ? {} : (useMapStore.getState().postProcessEffect || {});

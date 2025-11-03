@@ -30,7 +30,8 @@
       "WebFetch(domain:deck.gl)",
       "Bash(curl:*)",
       "WebFetch(domain:luma.gl)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "WebFetch(domain:zod.dev)"
     ],
     "deny": [],
     "ask": []

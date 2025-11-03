@@ -12,22 +12,13 @@ export const zoomToLocationSchema = {
     locationName: z
       .string()
       .describe("Name of the location for user feedback"),
-    zoom: z.number().optional().describe("Zoom level (default: 10)"),
+    zoom: z.number().optional().describe("Zoom level (default: 10)").default(10)
   }),
 };
 
 export const zoomToLocation: ToolFunction = (toolCall: ToolCall): string => {
   console.log('[zoomToLocation] Executing tool client-side');
-  
-  const { longitude, latitude, locationName, zoom = 10 } = toolCall.input as {
-    longitude: number;
-    latitude: number;
-    locationName: string;
-    zoom?: number;
-  };
-  
-  // Use Zustand store directly
+  const { longitude, latitude, locationName, zoom } = zoomToLocationSchema.inputSchema.parse(toolCall.input);
   useMapStore.getState().flyToLocation(longitude, latitude, zoom);
-  
   return `Successfully zoomed to ${locationName} at coordinates ${latitude}, ${longitude}.`;
 };

@@ -16,16 +16,8 @@ export const addCartoMapSchema = {
 
 export const addCartoMap: ToolFunction = (toolCall: ToolCall): string => {
   console.log('[addCartoMap] Executing tool client-side');
+  const { mapUrl } = addCartoMapSchema.inputSchema.parse(toolCall.input);
 
-  const { mapUrl } = toolCall.input as {
-    mapUrl: string;
-  };
-
-  // Extract map ID from CARTO URL
-  // Supports multiple formats:
-  // - https://[domain].app.carto.com/viewer/{mapId}
-  // - https://[domain].app.carto.com/builder/{mapId}
-  // - https://[domain].app.carto.com/map/{mapId}
   const mapIdMatch = mapUrl.match(/\/(viewer|builder|map)\/([a-f0-9-]+)/i);
 
   if (!mapIdMatch || !mapIdMatch[2]) {
@@ -34,7 +26,6 @@ export const addCartoMap: ToolFunction = (toolCall: ToolCall): string => {
 
   const mapId = mapIdMatch[2];
 
-  // Use Zustand store to set the CARTO map
   useMapStore.getState().setCartoMapId(mapId);
 
   return `Successfully added CARTO map (ID: ${mapId}) to the visualization. The map layers are now being loaded.`;

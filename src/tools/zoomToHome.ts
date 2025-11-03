@@ -8,7 +8,7 @@ export const zoomToHomeSchema = {
 };
 
 export const zoomToHome: ToolFunction = (toolCall: ToolCall): string => {
+  zoomToHomeSchema.inputSchema.parse(toolCall.input);
   useMapStore.getState().flyToHome();
-
   return 'Successfully zoomed to London coordinates.';
 };
