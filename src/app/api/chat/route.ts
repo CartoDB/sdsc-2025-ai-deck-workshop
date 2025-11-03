@@ -1,52 +1,12 @@
 import { anthropic } from "@ai-sdk/anthropic";
-import { convertToModelMessages, streamText, UIMessage } from "ai";
+import { convertToModelMessages, jsonSchema, streamText, UIMessage } from "ai";
 import { loadConfig } from "@/lib/config";
 import { logToFile } from "@/lib/logger";
 import { listMCPTools } from "@/lib/mcpClient";
 import { mcpToolConfig } from "@/config/mcpTools";
 import { localToolSchemas } from "@/tools";
-import { z } from "zod";
 
 export const maxDuration = 30;
-
-// Convert MCP JSON schema to Zod schema
-function jsonSchemaToZod(schema: any): z.ZodTypeAny {
-  if (!schema.properties) {
-    return z.object({});
-  }
-
-  const shape: Record<string, z.ZodTypeAny> = {};
-
-  for (const [key, prop] of Object.entries(schema.properties)) {
-    const propSchema = prop as any;
-    let zodType: z.ZodTypeAny;
-
-    switch (propSchema.type) {
-      case "string":
-        zodType = z.string();
-        break;
-      case "number":
-        zodType = z.number();
-        break;
-      case "boolean":
-        zodType = z.boolean();
-        break;
-      case "object":
-        zodType = z.record(z.any());
-        break;
-      default:
-        zodType = z.any();
-    }
-
-    if (propSchema.description) {
-      zodType = zodType.describe(propSchema.description);
-    }
-
-    shape[key] = zodType;
-  }
-
-  return z.object(shape);
-}
 
 export async function POST(req: Request) {
   try {
@@ -81,7 +41,7 @@ export async function POST(req: Request) {
     for (const mcpTool of whitelistedMcpTools) {
       tools[mcpTool.name] = {
         description: mcpTool.description,
-        inputSchema: jsonSchemaToZod(mcpTool.inputSchema),
+        inputSchema: jsonSchema(mcpTool.inputSchema),
       };
     }
 

@@ -4,16 +4,12 @@
  */
 
 import { mcpToolConfig } from '@/config/mcpTools';
+import { JSONSchema7 } from 'ai';
 
 export interface MCPTool {
   name: string
   description: string
-  inputSchema: {
-    type: string
-    properties: Record<string, any>
-    additionalProperties: boolean
-    $schema?: string
-  }
+  inputSchema: JSONSchema7 
 }
 
 export interface MCPToolCallResult {
