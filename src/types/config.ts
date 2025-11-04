@@ -29,6 +29,7 @@ export interface StatsSettings {
 export interface DisplaySettings {
   title: string;
   description: string;
+  mapStyle: string;
   layer: LayerSettings;
   tooltip: TooltipSettings;
   stats: StatsSettings;

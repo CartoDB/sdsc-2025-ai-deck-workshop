@@ -4,10 +4,9 @@ import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { Map, useControl } from 'react-map-gl/maplibre';
 import type { MapRef } from 'react-map-gl/maplibre';
 import { MapboxOverlay, MapboxOverlayProps } from '@deck.gl/mapbox';
-import { DeckProps } from '@deck.gl/core';
 import { GeoJsonLayer, SolidPolygonLayer } from '@deck.gl/layers';
 import { fetchMap } from '@deck.gl/carto';
-import { AppConfig, GeoJsonData } from '@/types/config';
+import { AppConfig } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
 import { parseSync } from '@loaders.gl/core';
 import { WKTLoader } from '@loaders.gl/wkt';
@@ -22,8 +21,6 @@ function DeckGLOverlay(props: MapboxOverlayProps) {
   overlay.setProps(props);
   return null;
 }
-
-const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
 
 export default function MapComponent({ config }: MapComponentProps) {
   const mapRef = useRef<MapRef>(null);
@@ -178,7 +175,7 @@ export default function MapComponent({ config }: MapComponentProps) {
           latitude: 20,
           zoom: 0
         }}
-        mapStyle={MAP_STYLE}
+        mapStyle={config.displaySettings.mapStyle}
       >
         <DeckGLOverlay
           layers={layers}

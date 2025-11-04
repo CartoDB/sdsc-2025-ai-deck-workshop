@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useMemo, useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
 import { useChat } from '@ai-sdk/react';
-import { AppConfig, GeoJsonData } from '@/types/config';
+import { AppConfig } from '@/types/config';
 import { tools, ToolName } from '@/tools';
 import { callCartoTool } from '@/lib/cartoClient';
 
@@ -13,7 +13,7 @@ interface ChatComponentProps {
 
 export default function ChatComponent({ config }: ChatComponentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const scrollTimeoutRef = useRef<NodeJS.Timeout>();
+  const scrollTimeoutRef = useRef<NodeJS.Timeout>(null);
   
   const { messages, sendMessage, status, addToolResult } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat', }),

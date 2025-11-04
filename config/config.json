@@ -6,6 +6,7 @@
   "displaySettings": {
     "title": "✈️ Airport Data Assistant",
     "description": "Features:",
+    "mapStyle": "https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json",
     "layer": {
       "fillColor": [255, 140, 0, 180],
       "pointRadius": 40,
