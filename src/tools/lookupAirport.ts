@@ -1,3 +1,4 @@
+import { useMapStore } from '@/store/mapStore';
 import { ToolFunction, ToolCall } from './types';
 import { z } from 'zod';
 
@@ -13,23 +14,11 @@ export const lookupAirportSchema = {
   }),
 };
 
-// Get data from the global window object where MapComponent stores it
-declare global {
-  interface Window {
-    mapData?: {
-      features: Array<{
-        type: string;
-        properties: Record<string, unknown>;
-      }>;
-    };
-  }
-}
-
 export const lookupAirport: ToolFunction = (toolCall: ToolCall): string => {
   console.log('[lookupAirport] Executing tool client-side');
   const { iataCode } = lookupAirportSchema.inputSchema.parse(toolCall.input);
 
-  const data = window.mapData;
+  const data = useMapStore.getState().airportData;
 
   if (!data?.features) {
     return 'No airport data available. Please wait for the map to load.';

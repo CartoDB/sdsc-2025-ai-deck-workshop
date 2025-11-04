@@ -15,7 +15,6 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface MapComponentProps {
   config: AppConfig;
-  onDataLoad?: (data: GeoJsonData) => void;
 }
 
 function DeckGLOverlay(props: MapboxOverlayProps) {
@@ -26,13 +25,14 @@ function DeckGLOverlay(props: MapboxOverlayProps) {
 
 const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
 
-export default function MapComponent({ config, onDataLoad }: MapComponentProps) {
+export default function MapComponent({ config }: MapComponentProps) {
   const mapRef = useRef<MapRef>(null);
   const [cartoLayers, setCartoLayers] = useState<any[]>([]);
   const viewState = useMapStore((state) => state.viewState);
   const wktGeometry = useMapStore((state) => state.wktGeometry);
   const cartoMapId = useMapStore((state) => state.cartoMapId);
   const effects = useMapStore((state) => state.postProcessEffects);
+  const airportData = useMapStore((state) => state.airportData);
 
   // Suppress CARTO-related console errors
   useEffect(() => {
@@ -92,14 +92,6 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     }
   }, [viewState]);
 
-  const handleDataLoad = useCallback((loadedData: GeoJsonData) => {
-    console.log('[MapComponent] Data loaded with', loadedData?.features?.length || 0, 'features');
-    if (typeof window !== 'undefined') {
-      window.mapData = loadedData;
-    }
-    onDataLoad?.(loadedData);
-  }, [onDataLoad]);
-
   // Build deck.gl layers
   const layers = useMemo(() => {
     const result: any[] = [];
@@ -109,22 +101,23 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       result.push(...cartoLayers);
     }
 
-    // Add data layer
-    result.push(
-      new GeoJsonLayer({
-        id: 'data-layer',
-        data: config.dataSource.url,
-        pickable: true,
-        stroked: false,
-        filled: true,
-        pointType: 'circle',
-        pointRadiusScale: config.displaySettings.layer.pointRadiusScale,
-        pointRadiusMinPixels: config.displaySettings.layer.pointRadiusMinPixels,
-        getFillColor: config.displaySettings.layer.fillColor,
-        getPointRadius: config.displaySettings.layer.pointRadius,
-        onDataLoad: handleDataLoad
-      })
-    );
+    // Add data layer if airportData is available
+    if (airportData) {
+      result.push(
+        new GeoJsonLayer({
+          id: 'data-layer',
+          data: airportData,
+          pickable: true,
+          stroked: false,
+          filled: true,
+          pointType: 'circle',
+          pointRadiusScale: config.displaySettings.layer.pointRadiusScale,
+          pointRadiusMinPixels: config.displaySettings.layer.pointRadiusMinPixels,
+          getFillColor: config.displaySettings.layer.fillColor,
+          getPointRadius: config.displaySettings.layer.pointRadius,
+        })
+      );
+    }
 
     // Add WKT geometry layer if present
     if (wktGeometry) {
@@ -148,7 +141,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     }
 
     return result;
-  }, [cartoLayers, config, wktGeometry, handleDataLoad]);
+  }, [cartoLayers, config, wktGeometry, airportData]);
 
   const getTooltip = useCallback((info: any) => {
     if (!info.object) return null;
@@ -160,7 +153,12 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
       }
       return `${field.label}: ${value || 'N/A'}`;
     }).join('\n');
-    return tooltipContent;
+
+    return {
+      html: `<div style="background: rgba(0, 0, 0, 0.8); color: white; padding: 8px; border-radius: 4px; font-size: 14px; white-space: pre-line;">
+        ${tooltipContent}
+      </div>`
+    };
   }, [config.displaySettings.tooltip.fields]);
 
   return (

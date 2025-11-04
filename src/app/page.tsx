@@ -1,15 +1,15 @@
 'use client';
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import MapComponent from '@/components/MapComponent';
 import ChatComponent from '@/components/ChatComponent';
 import { AppConfig, GeoJsonData } from '@/types/config';
+import { useMapStore } from '@/store/mapStore';
 
 export const dynamic = 'force-dynamic';
 
 export default function Home() {
   const [config, setConfig] = useState<AppConfig | null>(null);
-  const [data, setData] = useState<GeoJsonData | null>(null);
 
   useEffect(() => {
     // Load configuration from API endpoint
@@ -19,10 +19,18 @@ export default function Home() {
       .catch(console.error);
   }, []);
 
-  const handleDataLoad = useCallback((data: GeoJsonData) => {
-    console.log('[HomePage] Data loaded callback with features:', data?.features?.length || 0);
-    setData(data);
-  }, []);
+  useEffect(() => {
+    // Fetch and store airport data in mapStore
+    if (config?.dataSource?.url) {
+      fetch(config.dataSource.url)
+        .then(res => res.json())
+        .then((data: GeoJsonData) => {
+          console.log('[HomePage] Loaded airport data with', data?.features?.length || 0, 'features');
+          useMapStore.getState().setAirportData(data);
+        })
+        .catch(console.error);
+    }
+  }, [config]);
 
   if (!config) {
     return <div className="h-screen flex items-center justify-center">Loading configuration...</div>;
@@ -31,16 +39,10 @@ export default function Home() {
   return (
     <div className="h-screen flex">
       <div className="flex-1">
-        <MapComponent 
-          config={config} 
-          onDataLoad={handleDataLoad} 
-        />
+        <MapComponent config={config} />
       </div>
       <div className="w-96">
-        <ChatComponent 
-          config={config} 
-          data={data}
-        />
+        <ChatComponent config={config} />
       </div>
     </div>
   );

@@ -9,10 +9,9 @@ import { callCartoTool } from '@/lib/cartoClient';
 
 interface ChatComponentProps {
   config: AppConfig;
-  data?: GeoJsonData;
 }
 
-export default function ChatComponent({ config, data }: ChatComponentProps) {
+export default function ChatComponent({ config }: ChatComponentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>();
   
