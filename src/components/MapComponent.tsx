@@ -7,8 +7,6 @@ import { MapboxOverlay } from '@deck.gl/mapbox';
 import { DeckProps } from '@deck.gl/core';
 import { GeoJsonLayer, SolidPolygonLayer } from '@deck.gl/layers';
 import { fetchMap } from '@deck.gl/carto';
-import { PostProcessEffect } from '@deck.gl/core';
-import { brightnessContrast, noise, sepia, vignette, ink } from '@luma.gl/effects';
 import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
 import { parseSync } from '@loaders.gl/core';
@@ -56,7 +54,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
   const viewState = useMapStore((state) => state.viewState);
   const wktGeometry = useMapStore((state) => state.wktGeometry);
   const cartoMapId = useMapStore((state) => state.cartoMapId);
-  const postProcessEffect = useMapStore((state) => state.postProcessEffect);
+  const effects = useMapStore((state) => state.postProcessEffects);
 
   // Suppress CARTO-related console errors
   useEffect(() => {
@@ -183,45 +181,6 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     return result;
   }, [cartoLayers, config, wktGeometry, handleHover, handleDataLoad]);
 
-  // Build post-process effects
-  const effects = useMemo(() => {
-    if (!postProcessEffect) return [];
-
-    const result: PostProcessEffect[] = [];
-
-    if (postProcessEffect.brightness !== undefined || postProcessEffect.contrast !== undefined) {
-      result.push(
-        new PostProcessEffect(brightnessContrast, {
-          brightness: postProcessEffect.brightness ?? 0,
-          contrast: postProcessEffect.contrast ?? 0,
-        })
-      );
-    }
-
-    if (postProcessEffect.sepia !== undefined) {
-      result.push(new PostProcessEffect(sepia, { amount: postProcessEffect.sepia }));
-    }
-
-    if (postProcessEffect.vignette) {
-      result.push(
-        new PostProcessEffect(vignette, {
-          size: postProcessEffect.vignette.size ?? 0.5,
-          amount: postProcessEffect.vignette.amount ?? 0.5,
-        })
-      );
-    }
-
-    if (postProcessEffect.ink !== undefined) {
-      result.push(new PostProcessEffect(ink, { strength: postProcessEffect.ink }));
-    }
-
-    if (postProcessEffect.noise !== undefined) {
-      result.push(new PostProcessEffect(noise, { amount: postProcessEffect.noise }));
-    }
-
-    return result;
-  }, [postProcessEffect]);
-
   return (
     <div className="relative w-full h-full">
       <Map
@@ -233,7 +192,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
         }}
         mapStyle={CARTO_BASEMAP_STYLE as any}
       >
-        <DeckGLOverlay layers={layers} effects={effects} interleaved={false} />
+        <DeckGLOverlay layers={layers} effects={effects || []} interleaved={false} />
       </Map>
 
       {hoveredFeature && (

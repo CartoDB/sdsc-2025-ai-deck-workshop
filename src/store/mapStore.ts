@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { MapViewState } from "@/types/config";
+import { PostProcessEffect } from '@deck.gl/core';
 import dummyWkt from "./dummyWkt";
 
 export interface WktGeometry {
@@ -8,26 +9,17 @@ export interface WktGeometry {
   color?: [number, number, number, number];
 }
 
-export interface PostProcessEffectParams {
-  brightness?: number;
-  contrast?: number;
-  sepia?: number;
-  vignette?: { size?: number; amount?: number };
-  ink?: number;
-  noise?: number;
-}
-
 interface MapStore {
   viewState?: MapViewState;
   wktGeometry?: WktGeometry;
   cartoMapId?: string;
-  postProcessEffect?: PostProcessEffectParams;
+  postProcessEffects?: PostProcessEffect[];
   setViewState: (viewState: MapViewState) => void;
   flyToLocation: (longitude: number, latitude: number, zoom?: number) => void;
   flyToHome: () => void;
   setWktGeometry: (geometry: WktGeometry | undefined) => void;
   setCartoMapId: (mapId: string | undefined) => void;
-  setPostProcessEffect: (effect: PostProcessEffectParams | undefined) => void;
+  setPostProcessEffects: (effects: PostProcessEffect[] | undefined) => void;
 }
 
 export const useMapStore = create<MapStore>((set) => ({
@@ -35,7 +27,7 @@ export const useMapStore = create<MapStore>((set) => ({
   //wktGeometry: dummyWkt, // For testing
   wktGeometry: undefined,
   cartoMapId: undefined,
-  postProcessEffect: undefined,
+  postProcessEffects: undefined,
 
   setViewState: (viewState: MapViewState) => {
     console.log("[MapStore] Setting view state:", viewState);
@@ -68,9 +60,9 @@ export const useMapStore = create<MapStore>((set) => ({
     set({ cartoMapId: mapId });
   },
 
-  setPostProcessEffect: (effect: PostProcessEffectParams | undefined) => {
-    console.log("[MapStore] Setting post-process effect:", effect);
-    set({ postProcessEffect: effect });
+  setPostProcessEffects: (effects: PostProcessEffect[] | undefined) => {
+    console.log("[MapStore] Setting post-process effects:", effects);
+    set({ postProcessEffects: effects });
   },
 }));
 

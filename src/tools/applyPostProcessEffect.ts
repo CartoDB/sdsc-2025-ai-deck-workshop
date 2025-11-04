@@ -1,6 +1,8 @@
 import { useMapStore } from '@/store/mapStore';
 import { ToolFunction, ToolCall } from './types';
 import { z } from 'zod';
+import { PostProcessEffect } from '@deck.gl/core';
+import { brightnessContrast, noise, sepia, vignette, ink } from '@luma.gl/effects';
 
 export const applyPostProcessEffectSchema = {
   description:
@@ -76,81 +78,70 @@ export const applyPostProcessEffect: ToolFunction = (toolCall: ToolCall): string
   const {
     brightness,
     contrast,
-    sepia,
+    sepia: sepiaValue,
     vignetteSize,
     vignetteAmount,
-    ink,
-    noise,
+    ink: inkValue,
+    noise: noiseValue,
     reset
   } = applyPostProcessEffectSchema.inputSchema.parse(toolCall.input);
 
-  // If reset is true, clear all existing effects first
-  const existingEffects = reset ? {} : (useMapStore.getState().postProcessEffect || {});
+  // Build array of actual luma.gl effects
+  const effects: PostProcessEffect[] = [];
+  const appliedEffects: string[] = [];
 
-  const effectParams: any = { ...existingEffects };
-
-  // Set or remove effects based on values
-  // Use null to explicitly remove an effect
-  if (brightness !== undefined) {
-    if (brightness === 0) {
-      delete effectParams.brightness;
-    } else {
-      effectParams.brightness = brightness;
-    }
-  }
-  if (contrast !== undefined) {
-    if (contrast === 0) {
-      delete effectParams.contrast;
-    } else {
-      effectParams.contrast = contrast;
-    }
-  }
-  if (sepia !== undefined) {
-    if (sepia === 0) {
-      delete effectParams.sepia;
-    } else {
-      effectParams.sepia = sepia;
-    }
-  }
-  if (vignetteSize !== undefined || vignetteAmount !== undefined) {
-    effectParams.vignette = {
-      ...(existingEffects.vignette || {}),
-      ...(vignetteSize !== undefined && { size: vignetteSize }),
-      ...(vignetteAmount !== undefined && { amount: vignetteAmount })
-    };
-    // Remove vignette if both are 0
-    if (effectParams.vignette.size === 0 && effectParams.vignette.amount === 0) {
-      delete effectParams.vignette;
-    }
-  }
-  if (ink !== undefined) {
-    if (ink === 0) {
-      delete effectParams.ink;
-    } else {
-      effectParams.ink = ink;
-    }
-  }
-  if (noise !== undefined) {
-    if (noise === 0) {
-      delete effectParams.noise;
-    } else {
-      effectParams.noise = noise;
-    }
+  if (!reset) {
+    // Get existing effects if not resetting
+    const existingEffects = useMapStore.getState().postProcessEffects || [];
+    effects.push(...existingEffects);
   }
 
-  // Use Zustand store to set the post-process effect parameters
-  useMapStore.getState().setPostProcessEffect(Object.keys(effectParams).length > 0 ? effectParams : undefined);
+  // Add brightness/contrast effect
+  if (brightness !== undefined || contrast !== undefined) {
+    effects.push(
+      new PostProcessEffect(brightnessContrast, {
+        brightness: brightness ?? 0,
+        contrast: contrast ?? 0,
+      })
+    );
+    if (brightness !== undefined) appliedEffects.push(`brightness: ${brightness}`);
+    if (contrast !== undefined) appliedEffects.push(`contrast: ${contrast}`);
+  }
 
-  const effects: string[] = [];
-  if (brightness !== undefined) effects.push(`brightness: ${brightness}`);
-  if (contrast !== undefined) effects.push(`contrast: ${contrast}`);
-  if (sepia !== undefined) effects.push(`sepia: ${sepia}`);
-  if (vignetteSize !== undefined) effects.push(`vignette size: ${vignetteSize}`);
-  if (vignetteAmount !== undefined) effects.push(`vignette amount: ${vignetteAmount}`);
-  if (ink !== undefined) effects.push(`ink: ${ink}`);
-  if (noise !== undefined) effects.push(`noise: ${noise}`);
+  // Add sepia effect
+  if (sepiaValue !== undefined && sepiaValue > 0) {
+    effects.push(new PostProcessEffect(sepia, { amount: sepiaValue }));
+    appliedEffects.push(`sepia: ${sepiaValue}`);
+  }
 
-  return effects.length > 0
-    ? `Successfully applied post-process effects: ${effects.join(', ')}`
+  // Add vignette effect
+  if ((vignetteSize !== undefined && vignetteSize > 0) || (vignetteAmount !== undefined && vignetteAmount > 0)) {
+    effects.push(
+      new PostProcessEffect(vignette, {
+        size: vignetteSize ?? 0.5,
+        amount: vignetteAmount ?? 0.5,
+      })
+    );
+    if (vignetteSize !== undefined) appliedEffects.push(`vignette size: ${vignetteSize}`);
+    if (vignetteAmount !== undefined) appliedEffects.push(`vignette amount: ${vignetteAmount}`);
+  }
+
+  // Add ink effect
+  if (inkValue !== undefined && inkValue > 0) {
+    effects.push(new PostProcessEffect(ink, { strength: inkValue }));
+    appliedEffects.push(`ink: ${inkValue}`);
+  }
+
+  // Add noise effect
+  if (noiseValue !== undefined && noiseValue > 0) {
+    effects.push(new PostProcessEffect(noise, { amount: noiseValue }));
+    appliedEffects.push(`noise: ${noiseValue}`);
+  }
+
+  // Update store with built effects
+  useMapStore.getState().setPostProcessEffects(effects.length > 0 ? effects : undefined);
+
+  return appliedEffects.length > 0
+    ? `Successfully applied post-process effects: ${appliedEffects.join(', ')}`
     : 'Post-process effects reset to defaults';
 };
