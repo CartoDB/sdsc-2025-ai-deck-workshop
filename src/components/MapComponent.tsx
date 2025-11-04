@@ -24,28 +24,7 @@ function DeckGLOverlay(props: DeckProps) {
   return null;
 }
 
-const CARTO_BASEMAP_STYLE = {
-  version: 8,
-  sources: {
-    'carto-light': {
-      type: 'raster',
-      tiles: [
-        'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-        'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
-        'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'
-      ],
-      tileSize: 256,
-      attribution: '© CARTO'
-    }
-  },
-  layers: [
-    {
-      id: 'carto-light-layer',
-      type: 'raster',
-      source: 'carto-light'
-    }
-  ]
-};
+const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json';
 
 export default function MapComponent({ config, onDataLoad }: MapComponentProps) {
   const mapRef = useRef<MapRef>(null);
@@ -190,7 +169,7 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
           latitude: 20,
           zoom: 0
         }}
-        mapStyle={CARTO_BASEMAP_STYLE as any}
+        mapStyle={MAP_STYLE}
       >
         <DeckGLOverlay layers={layers} effects={effects || []} interleaved={false} />
       </Map>
