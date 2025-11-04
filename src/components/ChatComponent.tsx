@@ -41,36 +41,12 @@ export default function ChatComponent({ config }: ChatComponentProps) {
         console.log(`[ChatComponent] Checking if ${toolName} is a CARTO tool`);
         try {
           console.log(`[ChatComponent] Calling CARTO tool: ${toolName}`);
-
-          const result = await callCartoTool(toolName, toolCall.input);
-
-          if (result.content && result.content.length > 0) {
-            const textContent = result.content[0].text;
-
-            // Try to parse and format JSON
-            try {
-              const data = JSON.parse(textContent);
-              const output = `MCP Tool "${toolName}" result:\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``;
-              addToolResult({
-                toolCallId: toolCall.toolCallId,
-                tool: toolCall.toolName,
-                output,
-              });
-            } catch {
-              // Not JSON, return as text
-              addToolResult({
-                toolCallId: toolCall.toolCallId,
-                tool: toolCall.toolName,
-                output: `MCP Tool "${toolName}" result:\n${textContent}`,
-              });
-            }
-          } else {
-            addToolResult({
-              toolCallId: toolCall.toolCallId,
-              tool: toolCall.toolName,
-              output: `MCP tool executed but returned no content`,
-            });
-          }
+          const output = await callCartoTool(toolName, toolCall.input);
+          addToolResult({
+            toolCallId: toolCall.toolCallId,
+            tool: toolCall.toolName,
+            output,
+          });
         } catch (error) {
           console.error(`[ChatComponent] Error executing MCP tool:`, error);
           addToolResult({

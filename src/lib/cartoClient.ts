@@ -12,12 +12,6 @@ export interface CartoTool {
   inputSchema: JSONSchema7
 }
 
-export interface CartoToolCallResult {
-  content: Array<{
-    type: string
-    text: string
-  }>
-}
 
 /**
  * Parse SSE response from MCP server
@@ -75,12 +69,12 @@ export async function listCartoTools(): Promise<CartoTool[]> {
 }
 
 /**
- * Call a CARTO MCP tool with given arguments
+ * Call a CARTO MCP tool with given arguments and return formatted output
  */
 export async function callCartoTool(
   toolName: string,
   args: Record<string, any>
-): Promise<CartoToolCallResult> {
+): Promise<string> {
   const request = {
     jsonrpc: '2.0',
     method: 'tools/call',
@@ -114,7 +108,22 @@ export async function callCartoTool(
 
     if (jsonData && jsonData.result) {
       console.log('[CARTO] Tool call successful, result:', jsonData.result)
-      return jsonData.result
+
+      // Extract and format the result
+      if (jsonData.result.content && jsonData.result.content.length > 0) {
+        const textContent = jsonData.result.content[0].text;
+
+        // Try to parse and format JSON
+        try {
+          const data = JSON.parse(textContent);
+          return `MCP Tool "${toolName}" result:\n\`\`\`json\n${JSON.stringify(data, null, 2)}\n\`\`\``;
+        } catch {
+          // Not JSON, return as text
+          return `MCP Tool "${toolName}" result:\n${textContent}`;
+        }
+      } else {
+        return `MCP tool executed but returned no content`;
+      }
     } else if (jsonData && jsonData.error) {
       console.error('[CARTO] Tool call error:', jsonData.error)
       throw new Error(`CARTO MCP error: ${jsonData.error.message}`)
