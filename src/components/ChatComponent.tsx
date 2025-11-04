@@ -38,23 +38,13 @@ export default function ChatComponent({ config }: ChatComponentProps) {
         });
       } else {
         // Check if this is a CARTO tool
-        console.log(`[ChatComponent] Checking if ${toolName} is a CARTO tool`);
-        try {
-          console.log(`[ChatComponent] Calling CARTO tool: ${toolName}`);
-          const output = await callCartoTool(toolName, toolCall.input);
-          addToolResult({
-            toolCallId: toolCall.toolCallId,
-            tool: toolCall.toolName,
-            output,
-          });
-        } catch (error) {
-          console.error(`[ChatComponent] Error executing MCP tool:`, error);
-          addToolResult({
-            toolCallId: toolCall.toolCallId,
-            tool: toolCall.toolName,
-            output: `Error executing MCP tool: ${error instanceof Error ? error.message : 'Unknown error'}`,
-          });
-        }
+        console.log(`[ChatComponent] Calling CARTO tool: ${toolName}`);
+        const output = await callCartoTool(toolName, toolCall.input);
+        addToolResult({
+          toolCallId: toolCall.toolCallId,
+          tool: toolCall.toolName,
+          output,
+        });
       }
     },
   });

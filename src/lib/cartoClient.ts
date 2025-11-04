@@ -70,6 +70,7 @@ export async function listCartoTools(): Promise<CartoTool[]> {
 
 /**
  * Call a CARTO MCP tool with given arguments and return formatted output
+ * Catches all errors and returns them as formatted strings
  */
 export async function callCartoTool(
   toolName: string,
@@ -126,13 +127,13 @@ export async function callCartoTool(
       }
     } else if (jsonData && jsonData.error) {
       console.error('[CARTO] Tool call error:', jsonData.error)
-      throw new Error(`CARTO MCP error: ${jsonData.error.message}`)
+      return `Error executing MCP tool "${toolName}": ${jsonData.error.message}`;
     } else {
       console.error('[CARTO] Unexpected response format:', jsonData)
-      throw new Error('Unexpected CARTO MCP response format')
+      return `Error executing MCP tool "${toolName}": Unexpected response format`;
     }
   } catch (error) {
     console.error('[CARTO] Error calling tool:', error)
-    throw error
+    return `Error executing MCP tool "${toolName}": ${error instanceof Error ? error.message : 'Unknown error'}`;
   }
 }
