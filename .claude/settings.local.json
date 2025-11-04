@@ -31,7 +31,9 @@
       "Bash(curl:*)",
       "WebFetch(domain:luma.gl)",
       "Bash(python3:*)",
-      "WebFetch(domain:zod.dev)"
+      "WebFetch(domain:zod.dev)",
+      "Read(//tmp/**)",
+      "Bash(pkill:*)"
     ],
     "deny": [],
     "ask": []
