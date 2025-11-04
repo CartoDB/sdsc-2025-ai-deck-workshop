@@ -146,19 +146,18 @@ export default function MapComponent({ config }: MapComponentProps) {
   const getTooltip = useCallback((info: any) => {
     if (!info.object) return null;
 
+    // Handle both GeoJSON (has properties) and CARTO layers (properties at root)
+    const properties = info.object.properties || info.object;
+
     const tooltipContent = config.displaySettings.tooltip.fields.map((field, index) => {
-      const value = info.object.properties[field.key];
+      const value = properties[field.key];
       if (index === 0) {
         return value || `Unknown ${field.label}`;
       }
       return `${field.label}: ${value || 'N/A'}`;
     }).join('\n');
 
-    return {
-      html: `<div style="background: rgba(0, 0, 0, 0.8); color: white; padding: 8px; border-radius: 4px; font-size: 14px; white-space: pre-line;">
-        ${tooltipContent}
-      </div>`
-    };
+    return tooltipContent;
   }, [config.displaySettings.tooltip.fields]);
 
   return (
