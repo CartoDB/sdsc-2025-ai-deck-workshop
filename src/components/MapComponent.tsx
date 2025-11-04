@@ -131,8 +131,7 @@ export default function MapComponent({ config }: MapComponentProps) {
             getFillColor: wktGeometry.color || [0, 100, 200, 100],
             getLineColor: [0, 0, 0, 200],
             getLineWidth: 2,
-            lineWidthMinPixels: 1,
-            pickable: true
+            lineWidthMinPixels: 1
           })
         );
       } catch (error) {
@@ -149,6 +148,16 @@ export default function MapComponent({ config }: MapComponentProps) {
     // Handle both GeoJSON (has properties) and CARTO layers (properties at root)
     const properties = info.object.properties || info.object;
 
+    // For CARTO data, show all properties excluding __ prefixed ones
+    if (!info.object.properties?.['iata_code']) {
+      const cartoProps = Object.entries(properties)
+        .filter(([key]) => !key.startsWith('__'))
+        .map(([key, value]) => `${key}: ${value}`)
+        .join('\n');
+      return cartoProps || 'No data';
+    }
+
+    // For GeoJSON, use configured fields
     const tooltipContent = config.displaySettings.tooltip.fields.map((field, index) => {
       const value = properties[field.key];
       if (index === 0) {
