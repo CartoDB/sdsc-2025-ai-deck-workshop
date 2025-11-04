@@ -3,11 +3,11 @@
 import React, { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { Map, useControl } from 'react-map-gl/maplibre';
 import type { MapRef } from 'react-map-gl/maplibre';
-import { MapboxOverlay } from '@deck.gl/mapbox';
+import { MapboxOverlay, MapboxOverlayProps } from '@deck.gl/mapbox';
 import { DeckProps } from '@deck.gl/core';
 import { GeoJsonLayer, SolidPolygonLayer } from '@deck.gl/layers';
 import { fetchMap } from '@deck.gl/carto';
-import { AppConfig, GeoJsonData, HoveredFeature } from '@/types/config';
+import { AppConfig, GeoJsonData } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
 import { parseSync } from '@loaders.gl/core';
 import { WKTLoader } from '@loaders.gl/wkt';
@@ -18,7 +18,7 @@ interface MapComponentProps {
   onDataLoad?: (data: GeoJsonData) => void;
 }
 
-function DeckGLOverlay(props: DeckProps) {
+function DeckGLOverlay(props: MapboxOverlayProps) {
   const overlay = useControl<MapboxOverlay>(() => new MapboxOverlay(props));
   overlay.setProps(props);
   return null;
@@ -28,7 +28,6 @@ const MAP_STYLE = 'https://basemaps.cartocdn.com/gl/voyager-gl-style/style.json'
 
 export default function MapComponent({ config, onDataLoad }: MapComponentProps) {
   const mapRef = useRef<MapRef>(null);
-  const [hoveredFeature, setHoveredFeature] = useState<HoveredFeature | null>(null);
   const [cartoLayers, setCartoLayers] = useState<any[]>([]);
   const viewState = useMapStore((state) => state.viewState);
   const wktGeometry = useMapStore((state) => state.wktGeometry);
@@ -93,14 +92,6 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     }
   }, [viewState]);
 
-  const handleHover = useCallback((info: any) => {
-    setHoveredFeature(info.object ? {
-      object: info.object,
-      x: info.x,
-      y: info.y
-    } : null);
-  }, []);
-
   const handleDataLoad = useCallback((loadedData: GeoJsonData) => {
     console.log('[MapComponent] Data loaded with', loadedData?.features?.length || 0, 'features');
     if (typeof window !== 'undefined') {
@@ -131,7 +122,6 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
         pointRadiusMinPixels: config.displaySettings.layer.pointRadiusMinPixels,
         getFillColor: config.displaySettings.layer.fillColor,
         getPointRadius: config.displaySettings.layer.pointRadius,
-        onHover: handleHover,
         onDataLoad: handleDataLoad
       })
     );
@@ -158,7 +148,20 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
     }
 
     return result;
-  }, [cartoLayers, config, wktGeometry, handleHover, handleDataLoad]);
+  }, [cartoLayers, config, wktGeometry, handleDataLoad]);
+
+  const getTooltip = useCallback((info: any) => {
+    if (!info.object) return null;
+
+    const tooltipContent = config.displaySettings.tooltip.fields.map((field, index) => {
+      const value = info.object.properties[field.key];
+      if (index === 0) {
+        return value || `Unknown ${field.label}`;
+      }
+      return `${field.label}: ${value || 'N/A'}`;
+    }).join('\n');
+    return tooltipContent;
+  }, [config.displaySettings.tooltip.fields]);
 
   return (
     <div className="relative w-full h-full">
@@ -171,31 +174,13 @@ export default function MapComponent({ config, onDataLoad }: MapComponentProps) 
         }}
         mapStyle={MAP_STYLE}
       >
-        <DeckGLOverlay layers={layers} effects={effects || []} interleaved={false} />
+        <DeckGLOverlay
+          layers={layers}
+          effects={effects || []}
+          getTooltip={getTooltip}
+          interleaved={false}
+        />
       </Map>
-
-      {hoveredFeature && (
-        <div
-          className="absolute bg-black/80 text-white p-2 rounded text-sm pointer-events-none z-10"
-          style={{
-            left: hoveredFeature.x + 'px',
-            top: hoveredFeature.y + 'px',
-            transform: 'translate(-50%, -100%)',
-            marginTop: '-10px'
-          }}
-        >
-          {config.displaySettings.tooltip.fields.map((field, index) => (
-            <div key={field.key}>
-              {index === 0 ? (
-                <strong>{hoveredFeature.object.properties[field.key] || `Unknown ${field.label}`}</strong>
-              ) : (
-                <span>{field.label}: {hoveredFeature.object.properties[field.key] || 'N/A'}</span>
-              )}
-              {index < config.displaySettings.tooltip.fields.length - 1 && <br />}
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
