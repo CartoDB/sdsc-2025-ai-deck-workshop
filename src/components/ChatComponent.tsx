@@ -5,7 +5,6 @@ import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } fro
 import { useChat } from '@ai-sdk/react';
 import { AppConfig } from '@/types/config';
 import { useToolStore } from '@/store/toolStore';
-import { callCartoTool } from '@/lib/cartoClient';
 
 interface ChatComponentProps {
   config: AppConfig;
@@ -26,9 +25,9 @@ export default function ChatComponent({ config }: ChatComponentProps) {
       console.log('[ChatComponent] Tool call received:', JSON.stringify(toolCall, null, 2));
 
       const toolName = toolCall.toolName;
-      const toolDef = getTool(toolName);
+      const toolFunction = getTool(toolName);
 
-      if (!toolDef) {
+      if (!toolFunction) {
         console.error(`[ChatComponent] Unknown tool: ${toolName}`);
         addToolResult({
           toolCallId: toolCall.toolCallId,
@@ -38,14 +37,8 @@ export default function ChatComponent({ config }: ChatComponentProps) {
         return;
       }
 
-      let output: string;
-      if (toolDef.type === 'local' && toolDef.execute) {
-        console.log(`[ChatComponent] Executing local tool: ${toolName}`);
-        output = toolDef.execute(toolCall);
-      } else {
-        console.log(`[ChatComponent] Calling CARTO tool: ${toolName}`);
-        output = await callCartoTool(toolName, toolCall.input);
-      }
+      console.log(`[ChatComponent] Executing tool: ${toolName}`);
+      const output = await toolFunction(toolCall);
 
       addToolResult({
         toolCallId: toolCall.toolCallId,

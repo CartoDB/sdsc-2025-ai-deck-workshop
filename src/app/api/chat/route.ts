@@ -2,8 +2,9 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { convertToModelMessages, jsonSchema, streamText, UIMessage } from "ai";
 import { loadConfig } from "@/lib/config";
 import { logToFile } from "@/lib/logger";
-import { listCartoTools } from "@/lib/cartoClient";
+import { listCartoTools, createCartoToolFunction } from "@/lib/cartoClient";
 import { localToolSchemas } from "@/tools";
+import { useToolStore } from "@/store/toolStore";
 
 export const maxDuration = 30;
 
@@ -23,6 +24,12 @@ export async function POST(req: Request) {
       count: cartoTools.length,
       tools: cartoTools.map((t) => t.name),
     });
+
+    // Add CARTO tools to the tool store
+    for (const cartoTool of cartoTools) {
+      const toolFunction = createCartoToolFunction(cartoTool.name);
+      useToolStore.getState().addTool(cartoTool.name, toolFunction);
+    }
 
     // Build tools object with both local and CARTO tools
     const tools: Record<string, any> = { ...localToolSchemas };

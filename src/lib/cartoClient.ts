@@ -5,6 +5,7 @@
 
 import { mcpToolConfig } from '@/config/mcpTools';
 import { JSONSchema7 } from 'ai';
+import { ToolFunction } from '@/tools/types';
 
 export interface CartoTool {
   name: string
@@ -66,6 +67,15 @@ export async function listCartoTools(): Promise<CartoTool[]> {
     console.error('Error listing CARTO tools:', error)
     return []
   }
+}
+
+/**
+ * Create a ToolFunction wrapper for a CARTO tool
+ */
+export function createCartoToolFunction(name: string): ToolFunction {
+  return async (toolCall: any): Promise<string> => {
+    return await callCartoTool(name, toolCall.input);
+  };
 }
 
 /**
