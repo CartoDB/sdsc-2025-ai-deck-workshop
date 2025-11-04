@@ -4,7 +4,7 @@ import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } from 'ai';
 import { useChat } from '@ai-sdk/react';
 import { AppConfig } from '@/types/config';
-import { tools, ToolName } from '@/tools';
+import { useToolStore } from '@/store/toolStore';
 import { callCartoTool } from '@/lib/cartoClient';
 
 interface ChatComponentProps {
@@ -14,7 +14,8 @@ interface ChatComponentProps {
 export default function ChatComponent({ config }: ChatComponentProps) {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>(null);
-  
+  const getTool = useToolStore((state) => state.getTool);
+
   const { messages, sendMessage, status, addToolResult } = useChat({
     transport: new DefaultChatTransport({ api: '/api/chat', }),
     sendAutomaticallyWhen: lastAssistantMessageIsCompleteWithToolCalls,
@@ -24,28 +25,33 @@ export default function ChatComponent({ config }: ChatComponentProps) {
     onToolCall: async ({ toolCall }) => {
       console.log('[ChatComponent] Tool call received:', JSON.stringify(toolCall, null, 2));
 
-      // Handle client-side tool execution
-      const toolName = toolCall.toolName as ToolName;
-      const tool = tools[toolName];
+      const toolName = toolCall.toolName;
+      const toolDef = getTool(toolName);
 
-      if (tool) {
-        console.log(`[ChatComponent] Executing ${toolName} tool client-side`);
-        const output = tool(toolCall);
+      if (!toolDef) {
+        console.error(`[ChatComponent] Unknown tool: ${toolName}`);
         addToolResult({
           toolCallId: toolCall.toolCallId,
           tool: toolCall.toolName,
-          output,
+          output: `Error: Unknown tool "${toolName}"`,
         });
-      } else {
-        // Check if this is a CARTO tool
-        console.log(`[ChatComponent] Calling CARTO tool: ${toolName}`);
-        const output = await callCartoTool(toolName, toolCall.input);
-        addToolResult({
-          toolCallId: toolCall.toolCallId,
-          tool: toolCall.toolName,
-          output,
-        });
+        return;
       }
+
+      let output: string;
+      if (toolDef.type === 'local' && toolDef.execute) {
+        console.log(`[ChatComponent] Executing local tool: ${toolName}`);
+        output = toolDef.execute(toolCall);
+      } else {
+        console.log(`[ChatComponent] Calling CARTO tool: ${toolName}`);
+        output = await callCartoTool(toolName, toolCall.input);
+      }
+
+      addToolResult({
+        toolCallId: toolCall.toolCallId,
+        tool: toolCall.toolName,
+        output,
+      });
     },
   });
   const [input, setInput] = useState('');
