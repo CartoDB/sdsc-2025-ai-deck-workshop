@@ -5,6 +5,8 @@ import MapComponent from '@/components/MapComponent';
 import ChatComponent from '@/components/ChatComponent';
 import { AppConfig, GeoJsonData } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
+import { useToolStore } from '@/store/toolStore';
+import { listCartoTools, createCartoToolFunction } from '@/lib/cartoClient';
 
 export const dynamic = 'force-dynamic';
 
@@ -31,6 +33,19 @@ export default function Home() {
         .catch(console.error);
     }
   }, [config]);
+
+  useEffect(() => {
+    // Load CARTO tools and add them to the tool store (client-side)
+    listCartoTools()
+      .then((cartoTools) => {
+        console.log('[HomePage] Loaded CARTO tools:', cartoTools.map(t => t.name));
+        cartoTools.forEach((cartoTool) => {
+          const toolFunction = createCartoToolFunction(cartoTool.name);
+          useToolStore.getState().addTool(cartoTool.name, toolFunction);
+        });
+      })
+      .catch(console.error);
+  }, []);
 
   if (!config) {
     return <div className="h-screen flex items-center justify-center">Loading configuration...</div>;
