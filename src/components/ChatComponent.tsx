@@ -5,7 +5,7 @@ import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } fro
 import { useChat } from '@ai-sdk/react';
 import { AppConfig, GeoJsonData } from '@/types/config';
 import { tools, ToolName } from '@/tools';
-import { callMCPTool } from '@/lib/mcpClient';
+import { callCartoTool } from '@/lib/cartoClient';
 
 interface ChatComponentProps {
   config: AppConfig;
@@ -38,12 +38,12 @@ export default function ChatComponent({ config, data }: ChatComponentProps) {
           output,
         });
       } else {
-        // Check if this is an MCP tool
-        console.log(`[ChatComponent] Checking if ${toolName} is an MCP tool`);
+        // Check if this is a CARTO tool
+        console.log(`[ChatComponent] Checking if ${toolName} is a CARTO tool`);
         try {
-          console.log(`[ChatComponent] Calling MCP tool: ${toolName}`);
+          console.log(`[ChatComponent] Calling CARTO tool: ${toolName}`);
 
-          const result = await callMCPTool(toolName, toolCall.input);
+          const result = await callCartoTool(toolName, toolCall.input);
 
           if (result.content && result.content.length > 0) {
             const textContent = result.content[0].text;

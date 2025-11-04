@@ -1,18 +1,18 @@
 /**
- * MCP Client for CARTO workflows
+ * CARTO Client for MCP workflows
  * Handles communication with CARTO MCP server
  */
 
 import { mcpToolConfig } from '@/config/mcpTools';
 import { JSONSchema7 } from 'ai';
 
-export interface MCPTool {
+export interface CartoTool {
   name: string
   description: string
-  inputSchema: JSONSchema7 
+  inputSchema: JSONSchema7
 }
 
-export interface MCPToolCallResult {
+export interface CartoToolCallResult {
   content: Array<{
     type: string
     text: string
@@ -36,9 +36,9 @@ function parseSSEResponse(text: string): any {
 }
 
 /**
- * List all available MCP tools from the server
+ * List whitelisted CARTO tools from the MCP server
  */
-export async function listMCPTools(): Promise<MCPTool[]> {
+export async function listCartoTools(): Promise<CartoTool[]> {
   const request = {
     jsonrpc: '2.0',
     method: 'tools/list',
@@ -60,24 +60,27 @@ export async function listMCPTools(): Promise<MCPTool[]> {
     const jsonData = parseSSEResponse(text)
 
     if (jsonData && jsonData.result && jsonData.result.tools) {
-      return jsonData.result.tools
+      // Filter to only whitelisted tools
+      return jsonData.result.tools.filter((tool: CartoTool) =>
+        mcpToolConfig.whitelist.includes(tool.name)
+      )
     } else {
-      console.error('Unexpected MCP response format:', jsonData)
+      console.error('Unexpected CARTO MCP response format:', jsonData)
       return []
     }
   } catch (error) {
-    console.error('Error listing MCP tools:', error)
+    console.error('Error listing CARTO tools:', error)
     return []
   }
 }
 
 /**
- * Call an MCP tool with given arguments
+ * Call a CARTO MCP tool with given arguments
  */
-export async function callMCPTool(
+export async function callCartoTool(
   toolName: string,
   args: Record<string, any>
-): Promise<MCPToolCallResult> {
+): Promise<CartoToolCallResult> {
   const request = {
     jsonrpc: '2.0',
     method: 'tools/call',
@@ -88,7 +91,7 @@ export async function callMCPTool(
     id: Date.now()
   }
 
-  console.log('[MCP] Calling tool:', toolName, 'with args:', args)
+  console.log('[CARTO] Calling tool:', toolName, 'with args:', args)
 
   try {
     const response = await fetch(mcpToolConfig.serverUrl, {
@@ -101,26 +104,26 @@ export async function callMCPTool(
       body: JSON.stringify(request)
     })
 
-    console.log('[MCP] Response status:', response.status, response.statusText)
+    console.log('[CARTO] Response status:', response.status, response.statusText)
 
     const text = await response.text()
-    console.log('[MCP] Raw response text:', text.substring(0, 500)) // Log first 500 chars
+    console.log('[CARTO] Raw response text:', text.substring(0, 500))
 
     const jsonData = parseSSEResponse(text)
-    console.log('[MCP] Parsed response:', jsonData)
+    console.log('[CARTO] Parsed response:', jsonData)
 
     if (jsonData && jsonData.result) {
-      console.log('[MCP] Tool call successful, result:', jsonData.result)
+      console.log('[CARTO] Tool call successful, result:', jsonData.result)
       return jsonData.result
     } else if (jsonData && jsonData.error) {
-      console.error('[MCP] Tool call error:', jsonData.error)
-      throw new Error(`MCP error: ${jsonData.error.message}`)
+      console.error('[CARTO] Tool call error:', jsonData.error)
+      throw new Error(`CARTO MCP error: ${jsonData.error.message}`)
     } else {
-      console.error('[MCP] Unexpected response format:', jsonData)
-      throw new Error('Unexpected MCP response format')
+      console.error('[CARTO] Unexpected response format:', jsonData)
+      throw new Error('Unexpected CARTO MCP response format')
     }
   } catch (error) {
-    console.error('[MCP] Error calling tool:', error)
+    console.error('[CARTO] Error calling tool:', error)
     throw error
   }
 }

@@ -2,8 +2,7 @@ import { anthropic } from "@ai-sdk/anthropic";
 import { convertToModelMessages, jsonSchema, streamText, UIMessage } from "ai";
 import { loadConfig } from "@/lib/config";
 import { logToFile } from "@/lib/logger";
-import { listMCPTools } from "@/lib/mcpClient";
-import { mcpToolConfig } from "@/config/mcpTools";
+import { listCartoTools } from "@/lib/cartoClient";
 import { localToolSchemas } from "@/tools";
 
 export const maxDuration = 30;
@@ -18,37 +17,22 @@ export async function POST(req: Request) {
 
     const config = loadConfig();
 
-    // Fetch MCP tools dynamically
-    const mcpTools = await listMCPTools();
-    logToFile("[API] Loaded MCP tools", {
-      count: mcpTools.length,
-      tools: mcpTools.map((t) => t.name),
+    // Fetch whitelisted CARTO tools
+    const cartoTools = await listCartoTools();
+    logToFile("[API] Loaded CARTO tools", {
+      count: cartoTools.length,
+      tools: cartoTools.map((t) => t.name),
     });
 
-    // Build tools object with both local and MCP tools
+    // Build tools object with both local and CARTO tools
     const tools: Record<string, any> = { ...localToolSchemas };
 
-    // Add only whitelisted MCP tools
-    const whitelistedMcpTools = mcpTools.filter((tool) =>
-      mcpToolConfig.whitelist.includes(tool.name)
-    );
-
-    logToFile("[API] Whitelisted MCP tools", {
-      count: whitelistedMcpTools.length,
-      tools: whitelistedMcpTools.map((t) => t.name),
-    });
-
-    for (const mcpTool of whitelistedMcpTools) {
-      tools[mcpTool.name] = {
-        description: mcpTool.description,
-        inputSchema: jsonSchema(mcpTool.inputSchema),
+    for (const cartoTool of cartoTools) {
+      tools[cartoTool.name] = {
+        description: cartoTool.description,
+        inputSchema: jsonSchema(cartoTool.inputSchema),
       };
     }
-
-    // Build system prompt with only whitelisted MCP tools
-    const mcpToolDescriptions = whitelistedMcpTools
-      .map((t) => `- ${t.name}: ${t.description}`)
-      .join("\n");
 
     const result = streamText({
       // model: anthropic('claude-3-7-sonnet-latest'), // Smart
@@ -60,10 +44,7 @@ export async function POST(req: Request) {
           JSON.stringify(toolCall, null, 2)
         );
       },
-      system: `${config.systemPrompt}
-
-You also have access to CARTO MCP geospatial workflow tools:
-${mcpToolDescriptions}`,
+      system: config.systemPrompt,
       messages: convertToModelMessages(messages),
       tools,
     });
