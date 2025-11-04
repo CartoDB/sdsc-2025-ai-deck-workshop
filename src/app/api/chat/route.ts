@@ -1,6 +1,6 @@
 import { anthropic } from "@ai-sdk/anthropic";
 import { convertToModelMessages, jsonSchema, streamText, UIMessage } from "ai";
-import { loadConfig } from "@/lib/config";
+import { loadConfigFile } from "@/lib/config";
 import { logToFile } from "@/lib/logger";
 import { listCartoTools } from "@/lib/cartoClient";
 import { localToolSchemas } from "@/tools";
@@ -15,7 +15,7 @@ export async function POST(req: Request) {
       lastMessage: messages[messages.length - 1],
     });
 
-    const config = loadConfig();
+    const systemPrompt = loadConfigFile("system-prompt.md");
 
     // Fetch whitelisted CARTO tools
     const cartoTools = await listCartoTools();
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
           JSON.stringify(toolCall, null, 2)
         );
       },
-      system: config.systemPrompt,
+      system: systemPrompt,
       messages: convertToModelMessages(messages),
       tools,
     });

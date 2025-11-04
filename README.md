@@ -45,7 +45,3 @@ An interactive map application demonstrating Claude AI integration with spatial 
   - "Calculate the area of the drawn region"
   - "Zoom to New York"
 - **Drawing**: Use the drawing tools to create regions for spatial analysis
-
-## Tech Stack
-
-Next.js 15, TypeScript, MapLibre GL, deck.gl, Claude AI (Vercel AI SDK), CARTO MCP Server

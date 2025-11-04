@@ -1,25 +1,18 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect } from 'react';
 import MapComponent from '@/components/MapComponent';
 import ChatComponent from '@/components/ChatComponent';
-import { AppConfig, GeoJsonData } from '@/types/config';
+import { GeoJsonData, AppConfig } from '@/types/config';
 import { useMapStore } from '@/store/mapStore';
 import { useToolStore } from '@/store/toolStore';
 import { listCartoTools, createCartoToolFunction } from '@/lib/cartoClient';
+import configData from '@/../config/config.json';
 
 export const dynamic = 'force-dynamic';
 
 export default function Home() {
-  const [config, setConfig] = useState<AppConfig | null>(null);
-
-  useEffect(() => {
-    // Load configuration from API endpoint
-    fetch('/api/config')
-      .then(res => res.json())
-      .then(setConfig)
-      .catch(console.error);
-  }, []);
+  const config = configData as AppConfig;
 
   useEffect(() => {
     // Fetch and store airport data in mapStore
@@ -46,10 +39,6 @@ export default function Home() {
       })
       .catch(console.error);
   }, []);
-
-  if (!config) {
-    return <div className="h-screen flex items-center justify-center">Loading configuration...</div>;
-  }
 
   return (
     <div className="h-screen flex">
