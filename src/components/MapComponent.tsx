@@ -11,10 +11,7 @@ import { useMapStore } from '@/store/mapStore';
 import { parseSync } from '@loaders.gl/core';
 import { WKTLoader } from '@loaders.gl/wkt';
 import 'maplibre-gl/dist/maplibre-gl.css';
-
-interface MapComponentProps {
-  config: AppConfig;
-}
+import configData from '@/../config/config.json';
 
 function DeckGLOverlay(props: MapboxOverlayProps) {
   const overlay = useControl<MapboxOverlay>(() => new MapboxOverlay(props));
@@ -22,7 +19,8 @@ function DeckGLOverlay(props: MapboxOverlayProps) {
   return null;
 }
 
-export default function MapComponent({ config }: MapComponentProps) {
+export default function MapComponent() {
+  const config = configData as AppConfig;
   const mapRef = useRef<MapRef>(null);
   const [cartoLayers, setCartoLayers] = useState<any[]>([]);
   const viewState = useMapStore((state) => state.viewState);

@@ -43,10 +43,10 @@ export default function Home() {
   return (
     <div className="h-screen flex">
       <div className="flex-1">
-        <MapComponent config={config} />
+        <MapComponent />
       </div>
       <div className="w-96">
-        <ChatComponent config={config} />
+        <ChatComponent />
       </div>
     </div>
   );

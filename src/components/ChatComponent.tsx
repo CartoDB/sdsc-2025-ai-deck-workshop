@@ -5,12 +5,10 @@ import { DefaultChatTransport, lastAssistantMessageIsCompleteWithToolCalls } fro
 import { useChat } from '@ai-sdk/react';
 import { AppConfig } from '@/types/config';
 import { useToolStore } from '@/store/toolStore';
+import configData from '@/../config/config.json';
 
-interface ChatComponentProps {
-  config: AppConfig;
-}
-
-export default function ChatComponent({ config }: ChatComponentProps) {
+export default function ChatComponent() {
+  const config = configData as AppConfig;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const scrollTimeoutRef = useRef<NodeJS.Timeout>(null);
   const getTool = useToolStore((state) => state.getTool);
