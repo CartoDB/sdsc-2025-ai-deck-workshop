@@ -59,6 +59,9 @@ export async function listCartoTools(): Promise<CartoTool[]> {
       return jsonData.result.tools.filter((tool: CartoTool) =>
         mcpToolConfig.whitelist.includes(tool.name)
       )
+    } else if (response.status === 401) {
+      console.log('Invalid CARTO token. Configure token in .env.local');
+      return [];
     } else {
       console.error('Unexpected CARTO MCP response format:', jsonData)
       return []
