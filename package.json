@@ -33,7 +33,7 @@
     "@tailwindcss/typography": "^0.5.16",
     "@types/react": "19.1.10",
     "@types/react-dom": "^19.1.7",
-    "ai": "^5.0.18",
+    "ai": "^5.0.52",
     "autoprefixer": "^10.4.21",
     "eslint": "^9.33.0",
     "eslint-config-next": "^15.5.0",
